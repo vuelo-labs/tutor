@@ -419,6 +419,7 @@ export default function ThinkFirstEngine() {
   const [nameInput, setNameInput] = useState("");
   const [chosenAge, setChosenAge] = useState(null);
   const [questStep, setQuestStep] = useState(0); // 0=intro, 1=playing
+  const [introStep, setIntroStep] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
   const [justLevelledUp, setJustLevelledUp] = useState(null);
   const chatEnd = useRef(null);
@@ -681,7 +682,6 @@ export default function ThinkFirstEngine() {
       `Seven abilities stand between you and full mastery. You'll unlock them one by one.`,
       `Start with the first: FOCUS — the ability to turn a fuzzy thought into something AXIS can act on.`,
     ];
-    const [step, setStep] = useState(0);
 
     return (
       <div style={{ minHeight: "100vh", background: vt.gradient || vt.bg, color: vt.text, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, fontFamily: "system-ui, sans-serif" }}>
@@ -691,19 +691,19 @@ export default function ThinkFirstEngine() {
           </div>
 
           <div style={{ minHeight: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ fontSize: 20, lineHeight: 1.8, color: step < introText.length - 1 ? vt.text : vt.accentWarm, fontWeight: step === 0 ? 700 : 400, transition: "all 0.3s" }}>
-              {introText[step]}
+            <p style={{ fontSize: 20, lineHeight: 1.8, color: introStep < introText.length - 1 ? vt.text : vt.accentWarm, fontWeight: introStep === 0 ? 700 : 400, transition: "all 0.3s" }}>
+              {introText[introStep]}
             </p>
           </div>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "24px 0" }}>
             {introText.map((_, i) => (
-              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i <= step ? vt.accent : vt.border, transition: "all 0.3s" }}/>
+              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i <= introStep ? vt.accent : vt.border, transition: "all 0.3s" }}/>
             ))}
           </div>
 
-          {step < introText.length - 1 ? (
-            <button onClick={() => setStep(s => s + 1)} style={{
+          {introStep < introText.length - 1 ? (
+            <button onClick={() => setIntroStep(s => s + 1)} style={{
               padding: "14px 40px", borderRadius: 50, border: `1px solid ${vt.border}`,
               background: "transparent", color: vt.textMuted, fontSize: 14, cursor: "pointer", fontFamily: "monospace",
             }}>
