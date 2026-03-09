@@ -1,271 +1,264 @@
 import { useState, useEffect, useRef } from "react";
 
 // ============================================
-// DATA
+// ABILITIES — the 7 skills, in-world names
 // ============================================
-const SKILLS = [
-  { id: "clarity",       name: "Clarity",            short: "Vague → precise",        icon: "◎", color: "#3B82F6" },
-  { id: "decomposition", name: "Decomposition",       short: "Whole → parts",          icon: "◫", color: "#8B5CF6" },
-  { id: "relationships", name: "Relationships",       short: "Parts → system",         icon: "⬡", color: "#EC4899" },
-  { id: "outcomes",      name: "Outcome Definition",  short: "Goal → finish line",     icon: "◉", color: "#F59E0B" },
-  { id: "gaps",          name: "Gap Analysis",        short: "Here → what's missing",  icon: "▧", color: "#10B981" },
-  { id: "procedural",    name: "Procedural Thinking", short: "Intent → steps",         icon: "▤", color: "#06B6D4" },
-  { id: "evaluation",    name: "Evaluation",          short: "Output → judgment",      icon: "◈", color: "#EF4444" },
-];
-
-const LEVELS = [
-  { level: 1,  name: "Seed" },   { level: 2,  name: "Sprout" }, { level: 3,  name: "Root" },
-  { level: 4,  name: "Branch" }, { level: 5,  name: "Trunk" },  { level: 6,  name: "Canopy" },
-  { level: 7,  name: "Crown" },  { level: 8,  name: "Grove" },  { level: 9,  name: "Forest" },
-  { level: 10, name: "Ecosystem" },
-];
-
-const AGE_GROUPS = [
-  { id: "young", label: "Young Explorer", ages: "Ages 4–8",   emoji: "🤖" },
-  { id: "child", label: "Explorer",       ages: "Ages 9–12",  emoji: "🚀" },
-  { id: "teen",  label: "Teen",           ages: "Ages 13–17", emoji: "⚡" },
-  { id: "adult", label: "Adult",          ages: "Ages 18+",   emoji: "◈"  },
-];
-
-const SCENARIOS = [
+const ABILITIES = [
   {
-    skill: "clarity",
-    prompts: {
-      young: "You ask a robot to get your snack and it brings nothing. What do you tell it? 🤖",
-      child: "You ask an AI to help with your project and it gets it wrong. How do you fix your question?",
-      teen:  "You asked AI for homework help and got a useless answer. What was missing from your question?",
-      adult: "You wrote a prompt and got a generic response. What's the single most important thing you left out?",
-    },
-    starters: {
-      young: ["Get me a 🍪 biscuit", "Bring me the red 🍎 apple", "I want something sweet 🍬", "Find a snack from the 🍽️ cupboard"],
-      child: ["Tell me specifically about...", "I need the part that explains...", "Focus only on...", "Give me an example of..."],
-      teen:  ["I forgot to mention...", "It needed more context about...", "I should have specified...", "The missing detail was..."],
-      adult: ["The missing constraint was...", "I didn't define the output format...", "I omitted the context that...", "The scope I missed was..."],
-    },
+    id: "clarity",
+    name: "FOCUS",
+    skill: "Clarity",
+    icon: "◎",
+    tagline: "Sharpen a fuzzy thought into a precise command",
+    story: "AXIS only responds to clear instructions. Vague requests return silence.",
+    color: "#F59E0B",
+    unlockLevel: 1,
   },
   {
-    skill: "decomposition",
-    prompts: {
-      young: "A robot has to tidy your room 🏠. Name 3 different jobs it needs to do!",
-      child: "You want to build a treehouse 🌳. What are the 3 biggest parts of the problem?",
-      teen:  "You want to make a game 🎮. Break it into its main pieces — what are they?",
-      adult: "You need to launch something new. Name the 3 most distinct parts of the problem.",
-    },
-    starters: {
-      young: ["Pick up the toys 🧸", "Make the bed 🛏️", "Put books on the shelf 📚", "Tidy the floor 🧹"],
-      child: ["Get the right materials,", "Plan the design first,", "Build it step by step,", "Test it when done,"],
-      teen:  ["Game logic and rules,", "Visuals and design,", "User input handling,", "Saving progress and..."],
-      adult: ["Customer/audience,", "Offer and value prop,", "Distribution channel,", "Measurement and..."],
-    },
+    id: "decomposition",
+    name: "FRAGMENT",
+    skill: "Decomposition",
+    icon: "◫",
+    tagline: "Break the impossible into the possible",
+    story: "Large requests overwhelm AXIS. Split them into parts it can handle.",
+    color: "#8B5CF6",
+    unlockLevel: 2,
   },
   {
-    skill: "relationships",
-    prompts: {
-      young: "If it rains ☔ you can't play outside. What else changes because of the rain?",
-      child: "If your school cancelled all homework, what other things might change?",
-      teen:  "A popular app bans ads. What happens next — beyond the obvious?",
-      adult: "A team loses its best person. What are the second-order effects?",
-    },
-    starters: {
-      young: ["We'd have to stay inside and...", "Mum would need to...", "The garden would get...", "I'd be bored so..."],
-      child: ["Kids would spend more time...", "Teachers might start...", "Parents would probably...", "Grades could go..."],
-      teen:  ["Revenue drops so...", "Competitors might...", "Users would shift to...", "The company would have to..."],
-      adult: ["Morale shifts because...", "Workload redistributes to...", "Clients notice when...", "Hiring pressure increases..."],
-    },
+    id: "relationships",
+    name: "WEAVE",
+    skill: "Relationships",
+    icon: "⬡",
+    tagline: "See the threads that connect everything",
+    story: "AXIS misses second-order effects. You must map the connections it cannot.",
+    color: "#EC4899",
+    unlockLevel: 3,
   },
   {
-    skill: "outcomes",
-    prompts: {
-      young: "You want your robot to clean a plate 🍽️. How do you know it's actually clean?",
-      child: "You ask an AI to write you a story ✍️. What makes it a good story — how would you know?",
-      teen:  "You want to 'get better at maths'. How would you know in 4 weeks if it worked?",
-      adult: "You want to 'improve team communication'. What does success look like in 8 weeks?",
-    },
-    starters: {
-      young: ["No food left on it 🍽️", "It's shiny and dry ✨", "I can see my face in it", "It smells clean 👃"],
-      child: ["It has a beginning, middle and end,", "I want to keep reading,", "The characters feel real,", "It makes me feel something,"],
-      teen:  ["My test score goes up by...", "I can solve X without help,", "I don't need to ask for...", "I can explain it to someone else"],
-      adult: ["Meeting count drops by...", "Issues resolved under...", "Team survey score goes up,", "Escalations reduce by..."],
-    },
+    id: "outcomes",
+    name: "ANCHOR",
+    skill: "Outcome Definition",
+    icon: "◉",
+    tagline: "Know exactly where you're trying to land",
+    story: "Without a destination, AXIS wanders. Give it a finish line.",
+    color: "#10B981",
+    unlockLevel: 3,
   },
   {
-    skill: "gaps",
-    prompts: {
-      young: "You want to bake a cake 🎂 but only have flour. What else is missing?",
-      child: "You want to make a YouTube video 🎥. You have a camera. What's still missing?",
-      teen:  "You want to start a small business 💡. You have an idea. Name your 3 biggest gaps.",
-      adult: "You want to ship a product in 60 days. You have a team. What are you missing?",
-    },
-    starters: {
-      young: ["Eggs 🥚", "Sugar 🍬", "Butter 🧈", "Someone to help me 👋"],
-      child: ["Ideas for what to film,", "Editing software,", "Somewhere to upload it,", "An audience to watch..."],
-      teen:  ["Money to start,", "Actual customers,", "A way to take payment,", "Time to build it..."],
-      adult: ["A clear spec,", "Customer validation,", "A go-to-market plan,", "Budget sign-off and..."],
-    },
+    id: "gaps",
+    name: "SCOUT",
+    skill: "Gap Analysis",
+    icon: "▲",
+    tagline: "Find what stands between you and the goal",
+    story: "AXIS cannot see what's missing. That's your job.",
+    color: "#06B6D4",
+    unlockLevel: 4,
   },
   {
-    skill: "procedural",
-    prompts: {
-      young: "Tell a robot 🤖 exactly how to make a bowl of cereal. Step by step!",
-      child: "Write the exact steps for an AI to pick a movie 🎬 for your family tonight.",
-      teen:  "Write 4 steps a very literal AI would follow to decide if a message needs a reply.",
-      adult: "Write 3 decision steps a literal system would follow to triage an inbound request.",
-    },
-    starters: {
-      young: ["Step 1: get a bowl 🥣", "Step 2: open the cereal box 📦", "Step 3: pour milk 🥛", "Step 4: get a spoon 🥄"],
-      child: ["Step 1: ask who is watching,", "Step 2: check ages are OK,", "Step 3: find one everyone likes,", "Step 4: check it's available..."],
-      teen:  ["Step 1: is it addressed to me?", "Step 2: does it need action?", "Step 3: is there a deadline?", "Step 4: if yes to both then..."],
-      adult: ["Step 1: is it urgent and important?", "Step 2: can it be delegated?", "Step 3: if both yes then...", "Otherwise defer to..."],
-    },
+    id: "procedural",
+    name: "SEQUENCE",
+    skill: "Procedural Thinking",
+    icon: "▤",
+    tagline: "Write instructions a literal machine can follow",
+    story: "AXIS is completely literal. It follows steps exactly. Write them well.",
+    color: "#3B82F6",
+    unlockLevel: 5,
   },
   {
-    skill: "evaluation",
-    prompts: {
-      young: "A robot says 2+2=5 😮. How do you know it's wrong and what do you do?",
-      child: "An AI says the moon is made of cheese 🧀. How do you check if AI is right or wrong?",
-      teen:  "An AI gives you an essay plan. What are the 2 things you'd check before using it?",
-      adult: "An AI recommends a strategy. What's the first thing you'd question about its reasoning?",
-    },
-    starters: {
-      young: ["I know because I learned...", "I'd check by counting myself", "I'd ask a grown-up 👨‍👩‍👧", "I'd tell it to try again 🔄"],
-      child: ["I'd search for it online,", "I'd check another source,", "I'd ask a teacher,", "I'd look it up in a book 📚"],
-      teen:  ["Does it actually answer the question?", "Are the points in the right order?", "Is any evidence missing?", "Does it make logical sense?"],
-      adult: ["What assumptions does it make?", "What data is it missing?", "Does it account for risk?", "What's the second-order effect?"],
-    },
+    id: "evaluation",
+    name: "DISCERN",
+    skill: "Evaluation",
+    icon: "◆",
+    tagline: "Judge whether what came back is actually good",
+    story: "AXIS never questions its own output. You must.",
+    color: "#EF4444",
+    unlockLevel: 6,
   },
 ];
 
 // ============================================
-// THEMES — completely different visual identity per age group
+// VISUAL THEMES
 // ============================================
-const THEMES = {
-  young: {
-    bg:         "#FFF9F0",
-    bgSecond:   "#FFFDF8",
-    bgCard:     "#FFFFFF",
-    bgInput:    "#FFF4E0",
-    border:     "#FFD97D",
-    text:       "#3D2B00",
-    textMuted:  "#A07840",
-    textFaint:  "#C9A870",
-    accent:     "#FF8C00",
-    accentSoft: "#FFE5B4",
-    bubble:     { bg: "#FFF0CC", border: "#FFD97D", selected: { bg: "#FF8C00", border: "#FF8C00", text: "#fff" }, text: "#7A4F00", fontSize: 16, padding: "14px 20px", borderRadius: 50, minWidth: 130 },
-    font:       "system-ui, sans-serif",
-    fontSize:   { h1: 48, body: 17, label: 13 },
-    inputSize:  17,
-    dark:       false,
+const VISUAL_THEMES = {
+  wildwood: {
+    name: "Wildwood",
+    emoji: "🌲",
+    desc: "Ancient forest. Organic. Earned.",
+    bg: "#0A120A",
+    bgCard: "#111A11",
+    bgInput: "#0D160D",
+    border: "#1E3A1E",
+    text: "#C8E6C8",
+    textMuted: "#5A8A5A",
+    textFaint: "#2A4A2A",
+    accent: "#4ADE80",
+    accentWarm: "#86EFAC",
+    gradient: "radial-gradient(ellipse at 20% 20%, #0F2A0F 0%, #0A120A 60%)",
   },
-  child: {
-    bg:         "#0D0F2B",
-    bgSecond:   "#111433",
-    bgCard:     "#161940",
-    bgInput:    "#0D0F2B",
-    border:     "#2A2F6B",
-    text:       "#E8EEFF",
-    textMuted:  "#7B84CC",
-    textFaint:  "#444B80",
-    accent:     "#FF6B6B",
-    accentSoft: "#FF6B6B22",
-    bubble:     { bg: "#1A1F50", border: "#2A2F6B", selected: { bg: "#FF6B6B", border: "#FF6B6B", text: "#fff" }, text: "#7B84CC", fontSize: 14, padding: "12px 18px", borderRadius: 40, minWidth: 120 },
-    font:       "system-ui, sans-serif",
-    fontSize:   { h1: 44, body: 15, label: 12 },
-    inputSize:  15,
-    dark:       true,
+  neon: {
+    name: "Neon City",
+    emoji: "⚡",
+    desc: "Cyberpunk dark. Electric. Sharp.",
+    bg: "#06060F",
+    bgCard: "#0D0D1A",
+    bgInput: "#08081A",
+    border: "#1A1A3A",
+    text: "#C8C8FF",
+    textMuted: "#5A5A9A",
+    textFaint: "#2A2A5A",
+    accent: "#818CF8",
+    accentWarm: "#A5B4FC",
+    gradient: "radial-gradient(ellipse at 80% 20%, #0D0D2A 0%, #06060F 60%)",
   },
-  teen: {
-    bg:         "#09090F",
-    bgSecond:   "#0D0D18",
-    bgCard:     "#111122",
-    bgInput:    "#09090F",
-    border:     "#1E1E3A",
-    text:       "#C8C8FF",
-    textMuted:  "#6060AA",
-    textFaint:  "#333355",
-    accent:     "#7C3AED",
-    accentSoft: "#7C3AED22",
-    bubble:     { bg: "#111122", border: "#1E1E3A", selected: { bg: "#7C3AED", border: "#7C3AED", text: "#fff" }, text: "#6060AA", fontSize: 13, padding: "10px 16px", borderRadius: 8, minWidth: 110 },
-    font:       "'Courier New', monospace",
-    fontSize:   { h1: 42, body: 14, label: 11 },
-    inputSize:  14,
-    dark:       true,
-  },
-  adult: {
-    bg:         "#0B1121",
-    bgSecond:   "#0D1526",
-    bgCard:     "#0F172A",
-    bgInput:    "#0F172A",
-    border:     "#1E293B",
-    text:       "#E2E8F0",
-    textMuted:  "#64748B",
-    textFaint:  "#334155",
-    accent:     "#3B82F6",
-    accentSoft: "#3B82F622",
-    bubble:     { bg: "#0F172A", border: "#1E293B", selected: { bg: "#3B82F6", border: "#3B82F6", text: "#fff" }, text: "#94A3B8", fontSize: 13, padding: "10px 16px", borderRadius: 100, minWidth: 110 },
-    font:       "system-ui, sans-serif",
-    fontSize:   { h1: 40, body: 14, label: 11 },
-    inputSize:  14,
-    dark:       true,
+  ember: {
+    name: "Ember",
+    emoji: "🌅",
+    desc: "Desert warmth. Ancient. Glowing.",
+    bg: "#120A04",
+    bgCard: "#1A1008",
+    bgInput: "#160D06",
+    border: "#3A1E0A",
+    text: "#F5D6A8",
+    textMuted: "#8A5A28",
+    textFaint: "#3A2A10",
+    accent: "#F59E0B",
+    accentWarm: "#FCD34D",
+    gradient: "radial-gradient(ellipse at 30% 80%, #2A1208 0%, #120A04 60%)",
   },
 };
 
 // ============================================
-// MASCOT SVGs — inline, no external deps
+// LEVEL TITLES
 // ============================================
-const BoltRobot = () => (
-  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="25" y="35" width="70" height="60" rx="16" fill="#FFD97D" stroke="#FF8C00" strokeWidth="3"/>
-    <rect x="45" y="20" width="30" height="20" rx="8" fill="#FFB347" stroke="#FF8C00" strokeWidth="2.5"/>
-    <line x1="60" y1="20" x2="60" y2="10" stroke="#FF8C00" strokeWidth="3" strokeLinecap="round"/>
-    <circle cx="60" cy="8" r="4" fill="#FF6B00"/>
-    <circle cx="43" cy="58" r="10" fill="white" stroke="#FF8C00" strokeWidth="2"/>
-    <circle cx="77" cy="58" r="10" fill="white" stroke="#FF8C00" strokeWidth="2"/>
-    <circle cx="45" cy="60" r="5" fill="#3B82F6"/>
-    <circle cx="79" cy="60" r="5" fill="#3B82F6"/>
-    <circle cx="46" cy="58" r="2" fill="white"/>
-    <circle cx="80" cy="58" r="2" fill="white"/>
-    <path d="M 43 80 Q 60 90 77 80" stroke="#FF8C00" strokeWidth="3" strokeLinecap="round" fill="none"/>
-    <rect x="10" y="48" width="15" height="30" rx="7" fill="#FFD97D" stroke="#FF8C00" strokeWidth="2"/>
-    <rect x="95" y="48" width="15" height="30" rx="7" fill="#FFD97D" stroke="#FF8C00" strokeWidth="2"/>
-    <rect x="35" y="95" width="18" height="16" rx="6" fill="#FFB347" stroke="#FF8C00" strokeWidth="2"/>
-    <rect x="67" y="95" width="18" height="16" rx="6" fill="#FFB347" stroke="#FF8C00" strokeWidth="2"/>
-  </svg>
-);
+const RANK_TITLES = [
+  "", "Initiate", "Apprentice", "Apprentice", "Journeyman",
+  "Journeyman", "Adept", "Adept", "Master", "Master", "Legend",
+];
 
-const ExplorerRocket = () => (
-  <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M55 10 C55 10 80 30 80 60 L55 75 L30 60 C30 30 55 10 55 10Z" fill="#FF6B6B" stroke="#FF4040" strokeWidth="2"/>
-    <ellipse cx="55" cy="57" rx="14" ry="14" fill="#1A1F50" stroke="#7B84CC" strokeWidth="2"/>
-    <circle cx="55" cy="57" r="8" fill="#4FC3F7"/>
-    <circle cx="52" cy="54" r="3" fill="white" opacity="0.6"/>
-    <path d="M30 60 L20 80 L40 72 Z" fill="#FF8C00"/>
-    <path d="M80 60 L90 80 L70 72 Z" fill="#FF8C00"/>
-    <path d="M45 75 L42 95 L55 88 L68 95 L65 75 Z" fill="#FF6B6B" stroke="#FF4040" strokeWidth="1.5"/>
-    <circle cx="38" cy="38" r="4" fill="#FFD700" opacity="0.8"/>
-    <circle cx="72" cy="32" r="3" fill="#FFD700" opacity="0.6"/>
-    <circle cx="80" cy="50" r="2" fill="#FFD700" opacity="0.4"/>
-  </svg>
-);
-
-const TeenBolt = () => (
-  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="44,5 20,45 38,45 36,75 60,35 42,35" fill="#7C3AED" stroke="#A855F7" strokeWidth="1.5" strokeLinejoin="round"/>
-    <polygon points="44,5 20,45 38,45 36,75 60,35 42,35" fill="url(#boltGrad)"/>
-    <defs>
-      <linearGradient id="boltGrad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#A855F7"/>
-        <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.6"/>
-      </linearGradient>
-    </defs>
-  </svg>
-);
+// ============================================
+// QUEST SCENARIOS — story-framed, age-aware
+// ============================================
+const QUESTS = [
+  {
+    abilityId: "clarity",
+    title: "The First Signal",
+    intro: {
+      young:  "AXIS is waiting. You type: 'do the thing'. AXIS replies: '...I do not understand.' What do you tell it instead?",
+      child:  "You've found AXIS. Your first test: it can only act on clear instructions. You type 'help me'. It returns nothing. Fix your instruction.",
+      teen:   "AXIS is online. Your first command: 'help me with stuff'. Response: null. The machine is literal. Rewrite the command so it actually works.",
+      adult:  "AXIS initialised. You send: 'help me with the project'. Response: insufficient parameters. Rewrite the command with the specificity it needs.",
+    },
+    starters: {
+      young:  ["Get me a 🍪 biscuit from the tin", "Draw a red 🔴 circle", "Play the song called 🎵 Happy"],
+      child:  ["Help me write a 3-paragraph story about...", "Find 5 facts about...", "Give me 3 ideas for..."],
+      teen:   ["Summarise this topic in bullet points:", "Write a 200-word explanation of...", "List the pros and cons of..."],
+      adult:  ["Draft a 3-point summary of...", "Identify the key risks in...", "Propose 3 options for solving..."],
+    },
+  },
+  {
+    abilityId: "decomposition",
+    title: "The Great Split",
+    intro: {
+      young:  "You ask AXIS to 'tidy everything'. It freezes — too big! Break it into 3 smaller jobs for it.",
+      child:  "AXIS can only do one thing at a time. Your mission: 'build a treehouse'. Too big. Split it into its parts.",
+      teen:   "AXIS returned an error: 'request too complex'. Break your task into its component parts so it can handle them one by one.",
+      adult:  "AXIS flagged your request as out of scope. Decompose the problem into distinct, independently executable parts.",
+    },
+    starters: {
+      young:  ["First: pick up the toys 🧸", "Then: put books on shelf 📚", "Next: make the bed 🛏️"],
+      child:  ["Part 1: gather materials,", "Part 2: design the plan,", "Part 3: build section by section,"],
+      teen:   ["Component 1: define the brief,", "Component 2: research options,", "Component 3: execute,"],
+      adult:  ["Phase 1: scope and constraints,", "Phase 2: options analysis,", "Phase 3: recommendation,"],
+    },
+  },
+  {
+    abilityId: "relationships",
+    title: "The Web",
+    intro: {
+      young:  "AXIS can only see what's in front of it. If it rains ☔, it says 'you get wet'. But what ELSE changes?",
+      child:  "AXIS misses connections. If school cancelled homework — it only sees 'kids are happy'. What else happens?",
+      teen:   "AXIS sees first-order effects only. A popular app bans ads. It says 'revenue drops'. What does it miss?",
+      adult:  "AXIS lacks systems thinking. Your team loses its best performer. It flags 'capacity reduction'. What does it miss?",
+    },
+    starters: {
+      young:  ["We'd have to stay inside and...", "Mum would need to...", "The garden would..."],
+      child:  ["Teachers would change how they...", "Parents might start...", "Other kids would..."],
+      teen:   ["Users migrate to competitors,", "Advertisers shift budget,", "Content quality changes because..."],
+      adult:  ["Knowledge loss compounds because...", "Team morale shifts when...", "Client relationships weaken as..."],
+    },
+  },
+  {
+    abilityId: "outcomes",
+    title: "The Destination",
+    intro: {
+      young:  "You tell AXIS to 'clean the plate 🍽️'. But what does clean ACTUALLY mean? How does AXIS know when it's done?",
+      child:  "You ask AXIS to write 'a good story'. It asks: what makes it good? You need to define done.",
+      teen:   "AXIS needs a finish line. 'Get better at maths' isn't one. Define what success looks like in 4 weeks.",
+      adult:  "AXIS cannot optimise without a target state. Define what 'improved team communication' looks like in measurable terms.",
+    },
+    starters: {
+      young:  ["Done means: no food left on it 🍽️", "Done means: it's shiny ✨", "Done means: I can eat off it again"],
+      child:  ["Good means: I want to read it twice,", "Good means: it makes me feel something,", "Good means: it has a real ending,"],
+      teen:   ["Success = test score up by X in 4 weeks,", "Success = I can explain it to someone,", "Success = I don't need to google it anymore,"],
+      adult:  ["Target: escalations down 30%,", "Target: decisions made in meeting, not after,", "Target: team survey score 7+ by week 8,"],
+    },
+  },
+  {
+    abilityId: "gaps",
+    title: "The Missing Pieces",
+    intro: {
+      young:  "You want to bake a cake 🎂. You have flour. AXIS lists what you have — but can you find what's missing?",
+      child:  "You want to make a YouTube video. You have a camera. AXIS says 'you're ready'. But what's actually missing?",
+      teen:   "You want to start something. You have an idea. List your 3 biggest gaps — the things between you and launch.",
+      adult:  "Your team wants to ship in 60 days. You have people. Name what's missing — categorised by type of gap.",
+    },
+    starters: {
+      young:  ["I'm missing eggs 🥚", "I need sugar 🍬", "I don't have butter 🧈"],
+      child:  ["Missing: a script or plan,", "Missing: editing software,", "Missing: an audience,"],
+      teen:   ["Gap 1: money to start,", "Gap 2: actual customers,", "Gap 3: way to get paid,"],
+      adult:  ["Knowledge gap: no validated spec,", "Resource gap: no design capacity,", "Market gap: no validated demand,"],
+    },
+  },
+  {
+    abilityId: "procedural",
+    title: "The Protocol",
+    intro: {
+      young:  "AXIS needs exact steps 🤖. Tell it how to make cereal — step by step. If you skip a step, it gets confused!",
+      child:  "AXIS is very literal. Write the exact steps for it to pick tonight's movie. Miss nothing.",
+      teen:   "AXIS follows instructions exactly, no guessing. Write 4 steps it would follow to decide if an email needs a reply.",
+      adult:  "AXIS has no judgement. Write 3 decision steps it would follow to triage an inbound request. Make each branch explicit.",
+    },
+    starters: {
+      young:  ["Step 1: get a bowl 🥣", "Step 2: open the box 📦", "Step 3: pour cereal first 🌾"],
+      child:  ["Step 1: check who's watching,", "Step 2: filter by age rating,", "Step 3: find one everyone hasn't seen,"],
+      teen:   ["Step 1: is it addressed to me?", "Step 2: does it require action?", "Step 3: is there a deadline?"],
+      adult:  ["Step 1: is it time-sensitive? If yes →", "Step 2: is it in my scope? If no →", "Step 3: does it need a decision?"],
+    },
+  },
+  {
+    abilityId: "evaluation",
+    title: "The Judgement",
+    intro: {
+      young:  "AXIS says 2+2=5 😮. How do you know it's wrong? What do you do next?",
+      child:  "AXIS says the moon is made of cheese 🧀. It sounds confident. How do you know to trust it — or not?",
+      teen:   "AXIS just wrote your essay plan. Before you use it — what are the 2 things you'd check?",
+      adult:  "AXIS recommended a strategy. Before you act — what's the first thing you'd question about its reasoning?",
+    },
+    starters: {
+      young:  ["I know it's wrong because...", "I'd check by counting myself 🔢", "I'd ask a grown-up 👨‍👩‍👧"],
+      child:  ["I'd check a second source,", "I'd look it up to compare,", "I'd ask it to show its working,"],
+      teen:   ["Does it actually answer the question?", "Is anything obviously missing?", "Are the sources reliable?"],
+      adult:  ["What assumptions did it make?", "What data is it missing?", "Does it account for risk?"],
+    },
+  },
+];
 
 // ============================================
 // STORAGE
 // ============================================
-const STORAGE_KEY = "thinkfirst-v2";
-function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch { return null; } }
-function saveState(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {} }
+const STORAGE_KEY = "thinkfirst-rpg-v1";
+function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch { return null; } }
+function save(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {} }
 
 // ============================================
 // API
@@ -275,123 +268,136 @@ async function callAI(system, messages) {
     const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 600, system, messages }),
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 500, system, messages }),
     });
     const data = await res.json();
-    return data.content?.map(c => c.text || "").join("") || "Error.";
-  } catch { return "Connection error."; }
+    return data.content?.map(c => c.text || "").join("") || "...";
+  } catch { return "AXIS is unreachable. Check your connection."; }
 }
 
-const ageLabel = { young: "a 4-8 year old child", child: "a 9-12 year old", teen: "a teenager (13-17)", adult: "an adult professional" };
+const ageLabel = { young: "a 4-8 year old", child: "a 9-12 year old", teen: "a teenager", adult: "an adult" };
 
-function assessmentPrompt(skill, ageGroup) {
-  return `You are a quick capability assessor for a thinking-skills training tool. Assessing ${ageLabel[ageGroup]}.
-Skill: ${skill}. Short answers expected (10 words or less). Reward clarity and structure over length.
-Score 1-10 generously if thinking is sound.
-Reply in this exact JSON only: {"score": <1-10>, "feedback": "<one warm encouraging sentence, max 12 words>", "ready_to_advance": <true|false>}`;
+function questPrompt(ability, ageGroup, userName) {
+  const name = userName ? `The player's name is ${userName}. ` : "";
+  return `You are AXIS — a powerful but completely literal machine. You are training ${ageLabel[ageGroup]} in the ability called "${ability.name}" (which is really about: ${ability.skill} — ${ability.tagline}).
+
+${name}You exist in a light RPG/adventure world. Stay in character as AXIS: precise, a little dry, never warm but never cruel.
+
+Your job: respond to their attempt, then coach their THINKING STRUCTURE in one sentence. If they're on the right track, acknowledge it and push them one level deeper with a follow-up challenge.
+
+Keep responses SHORT — max 4 sentences. Use simple language appropriate for ${ageLabel[ageGroup]}.
+Never explain the framework. Never say words like "decomposition" or "clarity". Just respond as AXIS and coach their thinking.`;
 }
 
-function trainingPrompt(skill, level, ageGroup, userName) {
-  const intensity = level <= 3 ? "warm, simple, encouraging" : level <= 6 ? "clear and direct" : "concise, Socratic, rigorous";
-  const name = userName ? `The user's name is ${userName}. ` : "";
-  return `You are a thinking-skills coach training ${ageLabel[ageGroup]} in "${skill.name}" (${skill.short}). ${name}
-Level: ${level}/10. Tone: ${intensity}.
-Give ONE short exercise using a toy example appropriate for their age. Max 3 sentences, then a clear prompt.
-After they respond, coach their THINKING STRUCTURE — not whether their answer is right or wrong.
-Never explain the framework. Never be academic. Just coach.`;
+function assessPrompt(ability, ageGroup) {
+  return `You are a hidden assessment engine. The player just attempted a quest testing "${ability.skill}". They are ${ageLabel[ageGroup]}.
+
+Short answers (even 5-10 words) are fine — reward clarity of thinking over length.
+
+Score 1-10. Be generous if the thinking structure is sound.
+JSON only: {"score": <1-10>, "feedback": "<one short encouraging line, in-world, as if AXIS is acknowledging them>", "ready_to_advance": <true|false>}`;
 }
 
 // ============================================
-// SHARED UI
+// MULTI-SELECT BUBBLES
 // ============================================
-const ChatMsg = ({ role, content, t }) => (
-  <div style={{ display: "flex", justifyContent: role === "user" ? "flex-end" : "flex-start", marginBottom: 10 }}>
+const Bubbles = ({ options, selected, onToggle, vt }) => (
+  <div style={{ padding: "0 20px 16px", display: "flex", gap: 10, flexWrap: "wrap" }}>
+    {options.map((s, i) => {
+      const on = selected.includes(s);
+      return (
+        <button key={i} onClick={() => onToggle(s)} style={{
+          padding: "12px 20px", borderRadius: 50, fontSize: 14, fontWeight: on ? 700 : 400,
+          border: `2px solid ${on ? vt.accent : vt.border}`,
+          background: on ? vt.accent : vt.bgCard,
+          color: on ? "#000" : vt.textMuted,
+          cursor: "pointer", transition: "all 0.15s",
+          transform: on ? "scale(1.05)" : "scale(1)",
+          boxShadow: on ? `0 0 16px ${vt.accent}66` : "none",
+          minWidth: 100,
+        }}>
+          {s}
+        </button>
+      );
+    })}
+  </div>
+);
+
+// ============================================
+// CHAT MESSAGE
+// ============================================
+const Msg = ({ role, content, vt, isAxis }) => (
+  <div style={{ display: "flex", flexDirection: "column", alignItems: role === "user" ? "flex-end" : "flex-start", marginBottom: 14 }}>
+    {isAxis && role === "assistant" && (
+      <div style={{ fontSize: 10, letterSpacing: 2, color: vt.accent, fontFamily: "monospace", marginBottom: 4, textTransform: "uppercase" }}>AXIS</div>
+    )}
     <div style={{
-      maxWidth: "85%", padding: "12px 16px",
-      borderRadius: role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-      background: role === "user" ? t.accent : t.dark ? "#1E293B" : t.border,
-      color: role === "user" ? "#fff" : t.text,
-      fontSize: t.fontSize.body, lineHeight: 1.65, whiteSpace: "pre-wrap",
-      fontFamily: t.font,
+      maxWidth: "88%", padding: "14px 18px",
+      borderRadius: role === "user" ? "18px 18px 4px 18px" : "4px 18px 18px 18px",
+      background: role === "user" ? `${vt.accent}22` : vt.bgCard,
+      border: `1px solid ${role === "user" ? vt.accent + "44" : vt.border}`,
+      color: vt.text, fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-wrap",
     }}>
       {content}
     </div>
   </div>
 );
 
-const Dots = ({ t }) => {
+const Thinking = ({ vt }) => {
   const [d, setD] = useState("");
   useEffect(() => {
-    const i = setInterval(() => setD(v => v.length >= 3 ? "" : v + "."), 400);
+    const i = setInterval(() => setD(v => v.length >= 3 ? "" : v + "."), 350);
     return () => clearInterval(i);
   }, []);
   return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ display: "inline-block", padding: "10px 16px", borderRadius: "18px 18px 18px 4px", background: t.dark ? "#1E293B" : t.border, color: t.textMuted, fontSize: 13, fontFamily: "monospace" }}>
-        thinking{d}
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 10, letterSpacing: 2, color: vt.accent, fontFamily: "monospace", marginBottom: 4, textTransform: "uppercase" }}>AXIS</div>
+      <div style={{ display: "inline-block", padding: "12px 18px", borderRadius: "4px 18px 18px 18px", background: vt.bgCard, border: `1px solid ${vt.border}`, color: vt.textMuted, fontFamily: "monospace", fontSize: 13 }}>
+        processing{d}
       </div>
     </div>
   );
 };
 
-const SkillRadar = ({ skills: skillLevels, t }) => {
-  const size = 240; const cx = size / 2; const cy = size / 2; const maxR = 90;
-  const points = SKILLS.map((s, i) => {
-    const angle = (Math.PI * 2 * i) / SKILLS.length - Math.PI / 2;
-    const level = skillLevels[s.id] || 0;
-    const r = (level / 10) * maxR;
-    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), lx: cx + (maxR + 22) * Math.cos(angle), ly: cy + (maxR + 22) * Math.sin(angle), skill: s, level };
-  });
+// ============================================
+// ABILITY CARD
+// ============================================
+const AbilityCard = ({ ability, level, unlocked, onClick, vt }) => {
+  const locked = !unlocked;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {[2,4,6,8,10].map(l => {
-        const r = (l / 10) * maxR;
-        const pts = SKILLS.map((_, i) => { const a = (Math.PI*2*i)/SKILLS.length-Math.PI/2; return `${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`; }).join(" ");
-        return <polygon key={l} points={pts} fill="none" stroke={t.border} strokeWidth={l===10?1.5:0.5}/>;
-      })}
-      {SKILLS.map((_, i) => { const a = (Math.PI*2*i)/SKILLS.length-Math.PI/2; return <line key={i} x1={cx} y1={cy} x2={cx+maxR*Math.cos(a)} y2={cy+maxR*Math.sin(a)} stroke={t.border} strokeWidth={0.5}/>; })}
-      <polygon points={points.map(p=>`${p.x},${p.y}`).join(" ")} fill={`${t.accent}22`} stroke={t.accent} strokeWidth={2}/>
-      {points.map((p, i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r={4} fill={p.skill.color}/>
-          <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle" fill={t.textMuted} fontSize={8} fontFamily="monospace">{p.skill.icon}{p.level}</text>
-        </g>
-      ))}
-    </svg>
-  );
-};
-
-// Multi-select bubble component
-const StarterBubbles = ({ starters, selected, onToggle, t }) => {
-  const bs = t.bubble;
-  return (
-    <div style={{ padding: "0 20px 14px", display: "flex", gap: 10, flexWrap: "wrap" }}>
-      {starters.map((s, i) => {
-        const isSelected = selected.includes(s);
-        return (
-          <button
-            key={i}
-            onClick={() => onToggle(s)}
-            style={{
-              padding: bs.padding,
-              borderRadius: bs.borderRadius,
-              fontSize: bs.fontSize,
-              minWidth: bs.minWidth,
-              border: `2px solid ${isSelected ? bs.selected.border : bs.border}`,
-              background: isSelected ? bs.selected.bg : bs.bg,
-              color: isSelected ? bs.selected.text : bs.text,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              fontFamily: t.font,
-              fontWeight: isSelected ? 600 : 400,
-              transform: isSelected ? "scale(1.04)" : "scale(1)",
-              boxShadow: isSelected ? `0 4px 16px ${t.accent}44` : "none",
-            }}
-          >
-            {s}
-          </button>
-        );
-      })}
+    <div onClick={unlocked ? onClick : undefined} style={{
+      padding: "18px 20px", borderRadius: 14,
+      border: `1px solid ${locked ? vt.border : ability.color + "44"}`,
+      background: locked ? vt.bgCard : `${ability.color}08`,
+      cursor: locked ? "default" : "pointer", opacity: locked ? 0.4 : 1,
+      transition: "all 0.2s", position: "relative", overflow: "hidden",
+    }}
+      onMouseEnter={e => { if (!locked) e.currentTarget.style.borderColor = ability.color; }}
+      onMouseLeave={e => { if (!locked) e.currentTarget.style.borderColor = `${ability.color}44`; }}
+    >
+      {locked && (
+        <div style={{ position: "absolute", top: 12, right: 14, fontSize: 16, opacity: 0.4 }}>🔒</div>
+      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 22, color: ability.color }}>{ability.icon}</span>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1, fontFamily: "monospace", color: locked ? vt.textMuted : vt.text }}>{ability.name}</div>
+            <div style={{ fontSize: 11, color: vt.textMuted }}>{ability.skill}</div>
+          </div>
+        </div>
+        {!locked && (
+          <div style={{ fontFamily: "monospace", fontSize: 11, color: ability.color, background: `${ability.color}22`, padding: "3px 10px", borderRadius: 20 }}>
+            {RANK_TITLES[level] || "Initiate"} · L{level}
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize: 13, color: vt.textMuted, lineHeight: 1.5 }}>{ability.tagline}</div>
+      {!locked && (
+        <div style={{ marginTop: 10, height: 4, background: vt.border, borderRadius: 2 }}>
+          <div style={{ height: "100%", width: `${level * 10}%`, background: ability.color, borderRadius: 2, transition: "width 0.5s", boxShadow: `0 0 8px ${ability.color}88` }} />
+        </div>
+      )}
     </div>
   );
 };
@@ -400,486 +406,456 @@ const StarterBubbles = ({ starters, selected, onToggle, t }) => {
 // MAIN APP
 // ============================================
 export default function ThinkFirstEngine() {
-  const [screen, setScreen]         = useState("loading");
-  const [userProfile, setUserProfile] = useState(null);
-  const [skillLevels, setSkillLevels] = useState({});
-  const [skillDetails, setSkillDetails] = useState({});
-  const [assessIdx, setAssessIdx]   = useState(0);
-  const [assessResults, setAssessResults] = useState({});
-  const [activeSkill, setActiveSkill] = useState(null);
-  const [messages, setMessages]     = useState([]);
-  const [loading, setLoading]       = useState(false);
-  const [sessions, setSessions]     = useState(0);
-  const [history, setHistory]       = useState([]);
-  const [input, setInput]           = useState("");
-  const [selectedStarters, setSelectedStarters] = useState([]);
-  const [nameInput, setNameInput]   = useState("");
-  const [selectedAge, setSelectedAge] = useState(null);
+  const [screen, setScreen]     = useState("loading");
+  const [vTheme, setVTheme]     = useState("neon");
+  const [userName, setUserName] = useState("");
+  const [ageGroup, setAgeGroup] = useState(null);
+  const [levels, setLevels]     = useState({});
+  const [activeAbility, setActiveAbility] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [input, setInput]       = useState("");
+  const [nameInput, setNameInput] = useState("");
+  const [chosenAge, setChosenAge] = useState(null);
+  const [questStep, setQuestStep] = useState(0); // 0=intro, 1=playing
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [justLevelledUp, setJustLevelledUp] = useState(null);
   const chatEnd = useRef(null);
   const inputRef = useRef(null);
 
-  const t = THEMES[userProfile?.ageGroup || selectedAge || "adult"];
+  const vt = VISUAL_THEMES[vTheme];
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   useEffect(() => {
-    const saved = loadState();
-    if (saved?.userProfile && saved?.skillLevels && Object.keys(saved.skillLevels).length === SKILLS.length) {
-      setUserProfile(saved.userProfile);
-      setSkillLevels(saved.skillLevels);
-      setSkillDetails(saved.skillDetails || {});
-      setSessions(saved.sessions || 0);
-      setHistory(saved.history || []);
-      setScreen("dashboard");
+    const saved = load();
+    if (saved?.ageGroup && saved?.levels && Object.keys(saved.levels).length > 0) {
+      setVTheme(saved.vTheme || "neon");
+      setUserName(saved.userName || "");
+      setAgeGroup(saved.ageGroup);
+      setLevels(saved.levels);
+      setTotalSessions(saved.totalSessions || 0);
+      setScreen("hub");
     } else {
-      setScreen("welcome");
+      setScreen("theme");
     }
   }, []);
 
   function persist(updates) {
-    saveState({ userProfile, skillLevels, skillDetails, sessions, history, ...updates });
+    save({ vTheme, userName, ageGroup, levels, totalSessions, ...updates });
   }
 
-  const toggleStarter = (s) => {
-    setSelectedStarters(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
-  };
+  const toggleBubble = (s) => setSelected(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+  const buildAnswer = () => [...selected, input.trim()].filter(Boolean).join(" ").trim();
+  const hasAnswer = selected.length > 0 || input.trim().length > 0;
 
-  const buildAnswer = () => {
-    const parts = [...selectedStarters];
-    if (input.trim()) parts.push(input.trim());
-    return parts.join(" ").trim();
-  };
-
-  // ---- PROFILE ----
-  const startWithProfile = () => {
-    if (!selectedAge) return;
-    const profile = { name: nameInput.trim() || null, ageGroup: selectedAge };
-    setUserProfile(profile);
-    setAssessIdx(0);
-    setAssessResults({});
-    setSelectedStarters([]);
-    setInput("");
-    const greeting = profile.name ? `Hi ${profile.name}! ` : "";
-    setMessages([
-      { role: "assistant", content: `${greeting}Let's take a quick look at how you think.\n\nI'll ask 7 short questions — answer however feels natural. Tap the bubbles below or type your own. There are no wrong answers.\n\nReady? Here's the first one.` },
-      { role: "assistant", content: SCENARIOS[0].prompts[selectedAge] },
-    ]);
-    setScreen("assessment");
-  };
-
-  // ---- ASSESSMENT ----
-  const handleAssessAnswer = async () => {
-    const answer = buildAnswer();
-    if (!answer || loading) return;
-    setInput("");
-    setSelectedStarters([]);
-    const scenario = SCENARIOS[assessIdx];
-    const newMsgs = [...messages, { role: "user", content: answer }];
-    setMessages(newMsgs);
-    setLoading(true);
-
-    const result = await callAI(
-      assessmentPrompt(scenario.skill, userProfile.ageGroup),
-      [{ role: "user", content: answer }]
-    );
-    let parsed;
-    try { parsed = JSON.parse(result.replace(/```json|```/g, "").trim()); }
-    catch { parsed = { score: 5, feedback: "Got it!", ready_to_advance: false }; }
-
-    const newResults = { ...assessResults, [scenario.skill]: { score: parsed.score, feedback: parsed.feedback } };
-    setAssessResults(newResults);
-    const nextIdx = assessIdx + 1;
-
-    if (nextIdx < SCENARIOS.length) {
-      setMessages([...newMsgs,
-        { role: "assistant", content: parsed.feedback },
-        { role: "assistant", content: SCENARIOS[nextIdx].prompts[userProfile.ageGroup] },
-      ]);
-      setAssessIdx(nextIdx);
-    } else {
-      const levels = {}; const details = {};
-      for (const [skillId, res] of Object.entries(newResults)) {
-        levels[skillId] = Math.max(1, Math.min(10, res.score));
-        details[skillId] = { feedback: res.feedback };
-      }
-      setSkillLevels(levels);
-      setSkillDetails(details);
-      persist({ skillLevels: levels, skillDetails: details, userProfile, sessions: 0, history: [] });
-      setMessages([...newMsgs,
-        { role: "assistant", content: `${parsed.feedback}\n\nAll done — building your profile...` },
-      ]);
-      setTimeout(() => setScreen("dashboard"), 1300);
-    }
-    setLoading(false);
-  };
-
-  // ---- TRAINING ----
-  const startTraining = async (skill) => {
-    setActiveSkill(skill);
+  // ============================================
+  // QUEST ENGINE
+  // ============================================
+  const startQuest = async (ability) => {
+    setActiveAbility(ability);
     setMessages([]);
-    setSelectedStarters([]);
+    setSelected([]);
     setInput("");
-    setScreen("training");
-    setLoading(true);
-    const level = skillLevels[skill.id] || 1;
-    const result = await callAI(
-      trainingPrompt(skill, level, userProfile.ageGroup, userProfile.name),
-      [{ role: "user", content: "Give me an exercise." }]
-    );
-    setMessages([{ role: "assistant", content: result }]);
-    setLoading(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    setQuestStep(1);
+    setScreen("quest");
+    const quest = QUESTS.find(q => q.abilityId === ability.id);
+    const intro = quest?.intro?.[ageGroup] || quest?.intro?.adult;
+    const level = levels[ability.id] || 1;
+    const rank = RANK_TITLES[level] || "Initiate";
+    setMessages([
+      {
+        role: "assistant",
+        content: `── QUEST: ${quest?.title || ability.name} ──\n\n${intro}`,
+      }
+    ]);
   };
 
-  const handleTrainingResponse = async () => {
+  const sendAnswer = async () => {
     const answer = buildAnswer();
     if (!answer || loading) return;
     setInput("");
-    setSelectedStarters([]);
+    setSelected([]);
+
     const newMsgs = [...messages, { role: "user", content: answer }];
     setMessages(newMsgs);
     setLoading(true);
-    const level = skillLevels[activeSkill.id] || 1;
-    const result = await callAI(
-      trainingPrompt(activeSkill, level, userProfile.ageGroup, userProfile.name),
-      newMsgs
-    );
-    setMessages([...newMsgs, { role: "assistant", content: result }]);
+
+    // Score + respond
+    const ability = activeAbility;
+    const quest = QUESTS.find(q => q.abilityId === ability.id);
+
+    const [axisReply, scoreRaw] = await Promise.all([
+      callAI(questPrompt(ability, ageGroup, userName), newMsgs),
+      callAI(assessPrompt(ability, ageGroup), [{ role: "user", content: answer }]),
+    ]);
+
+    let parsed;
+    try { parsed = JSON.parse(scoreRaw.replace(/```json|```/g, "").trim()); }
+    catch { parsed = { score: 5, feedback: "Signal received.", ready_to_advance: false }; }
+
+    const currentLevel = levels[ability.id] || 1;
+    const newLevel = parsed.ready_to_advance && parsed.score >= 7
+      ? Math.min(10, currentLevel + 1)
+      : currentLevel;
+
+    const newLevels = { ...levels, [ability.id]: newLevel };
+    const levelled = newLevel > currentLevel;
+
+    const updatedMsgs = [...newMsgs, { role: "assistant", content: axisReply }];
+    if (levelled) {
+      updatedMsgs.push({
+        role: "assistant",
+        content: `── LEVEL UP ──\n\n${ability.name} advanced to ${RANK_TITLES[newLevel]} · L${newLevel}\n\n${parsed.feedback}`,
+      });
+      setJustLevelledUp(ability);
+      setTimeout(() => setJustLevelledUp(null), 4000);
+    }
+
+    setMessages(updatedMsgs);
+    setLevels(newLevels);
+    const newSessions = totalSessions + 1;
+    setTotalSessions(newSessions);
+    persist({ levels: newLevels, totalSessions: newSessions });
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const completeSession = () => {
-    const newSessions = sessions + 1;
-    const currentLevel = skillLevels[activeSkill.id] || 1;
-    const skillHistory = history.filter(h => h.skill === activeSkill.id).length;
-    const newLevels = { ...skillLevels };
-    if (skillHistory > 0 && skillHistory % 3 === 0 && currentLevel < 10) newLevels[activeSkill.id] = currentLevel + 1;
-    const newHistory = [...history, { skill: activeSkill.id, level: currentLevel, date: new Date().toISOString() }];
-    setSessions(newSessions); setSkillLevels(newLevels); setHistory(newHistory);
-    persist({ skillLevels: newLevels, skillDetails, userProfile, sessions: newSessions, history: newHistory });
-    setActiveSkill(null);
-    setScreen("dashboard");
+  const returnToHub = () => {
+    setActiveAbility(null);
+    setMessages([]);
+    setSelected([]);
+    setInput("");
+    setScreen("hub");
   };
 
-  const reset = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setUserProfile(null); setSkillLevels({}); setSkillDetails({});
-    setSessions(0); setHistory([]); setSelectedAge(null); setNameInput(""); setSelectedStarters([]); setInput("");
-    setScreen("welcome");
+  // Which abilities are unlocked?
+  // First one always unlocked. Others unlock as you level up previous ones.
+  const isUnlocked = (ability) => {
+    const idx = ABILITIES.findIndex(a => a.id === ability.id);
+    if (idx === 0) return true;
+    const prev = ABILITIES[idx - 1];
+    return (levels[prev.id] || 0) >= 2;
   };
 
-  const recommended = SKILLS.reduce((min, s) => (skillLevels[s.id] || 0) < (skillLevels[min.id] || 0) ? s : min, SKILLS[0]);
-  const avgLevel = Object.keys(skillLevels).length
-    ? (Object.values(skillLevels).reduce((a, b) => a + b, 0) / SKILLS.length).toFixed(1) : "—";
+  const overallLevel = ABILITIES.length
+    ? Math.round(Object.values(levels).reduce((a, b) => a + b, 0) / ABILITIES.length) || 1
+    : 1;
 
-  const base = { minHeight: "100vh", height: "100vh", background: t.bg, color: t.text, fontFamily: t.font };
-
-  // ==================== LOADING ====================
-  if (screen === "loading") return (
-    <div style={{ ...base, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: t.textMuted, fontFamily: "monospace", fontSize: 13 }}>loading...</div>
-    </div>
-  );
-
-  // ==================== WELCOME ====================
-  const welcomeTheme = THEMES[selectedAge || "adult"];
-  if (screen === "welcome") return (
-    <div style={{ minHeight: "100vh", background: welcomeTheme.bg, color: welcomeTheme.text, fontFamily: welcomeTheme.font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, transition: "all 0.3s" }}>
-      <div style={{ width: "100%", maxWidth: 500 }}>
-        {/* Mascot */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          {selectedAge === "young" ? <BoltRobot /> : selectedAge === "child" ? <ExplorerRocket /> : selectedAge === "teen" ? <TeenBolt /> : (
-            <div style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: 4, color: welcomeTheme.textMuted, textTransform: "uppercase", paddingTop: 8 }}>Thinking Skills Trainer</div>
-          )}
-        </div>
-
-        <h1 style={{ fontSize: welcomeTheme.fontSize.h1, fontWeight: 800, letterSpacing: -2, lineHeight: 1, margin: "0 0 10px", textAlign: selectedAge === "young" ? "center" : "left" }}>
-          THINK<span style={{ color: welcomeTheme.accent }}>FIRST</span>
+  // ============================================
+  // SCREEN: THEME SELECT
+  // ============================================
+  if (screen === "theme") return (
+    <div style={{ minHeight: "100vh", background: VISUAL_THEMES[vTheme].gradient || VISUAL_THEMES[vTheme].bg, color: VISUAL_THEMES[vTheme].text, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ width: "100%", maxWidth: 480 }}>
+        <div style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: 4, color: VISUAL_THEMES[vTheme].textMuted, textTransform: "uppercase", marginBottom: 12 }}>Initialising...</div>
+        <h1 style={{ fontSize: 52, fontWeight: 800, letterSpacing: -2, margin: "0 0 8px" }}>
+          AXIS <span style={{ color: VISUAL_THEMES[vTheme].accent, fontWeight: 300 }}>awaits.</span>
         </h1>
-        <p style={{ color: welcomeTheme.textMuted, fontSize: welcomeTheme.fontSize.body, lineHeight: 1.7, margin: "0 0 28px", textAlign: selectedAge === "young" ? "center" : "left" }}>
-          {selectedAge === "young" ? "🌟 Let's practise thinking — the superpower that makes every robot do what you want! 🌟"
-            : selectedAge === "child" ? "🚀 Short exercises that train your brain to give AI better instructions. The better you think, the better it works."
-            : selectedAge === "teen" ? "Level up how you think. Short exercises. Real results."
-            : "Short exercises that build the thinking skills behind every effective AI interaction."}
+        <p style={{ color: VISUAL_THEMES[vTheme].textMuted, fontSize: 15, lineHeight: 1.7, margin: "0 0 32px" }}>
+          A device of unknown origin. It responds only to structured thought.<br />
+          Choose your world first.
         </p>
 
-        {/* Name */}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: welcomeTheme.fontSize.label, color: welcomeTheme.textMuted, marginBottom: 8, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase" }}>
-            {selectedAge === "young" ? "What's your name? 👋" : "Your name (optional)"}
-          </div>
-          <input
-            value={nameInput}
-            onChange={e => setNameInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && startWithProfile()}
-            placeholder={selectedAge === "young" ? "Tell me your name! 😊" : "What should we call you?"}
-            style={{ width: "100%", padding: selectedAge === "young" ? "14px 18px" : "12px 16px", borderRadius: selectedAge === "young" ? 16 : 10, border: `2px solid ${welcomeTheme.border}`, background: welcomeTheme.bgInput, color: welcomeTheme.text, fontSize: welcomeTheme.fontSize.body, outline: "none", fontFamily: welcomeTheme.font, transition: "border 0.2s", boxSizing: "border-box" }}
-            onFocus={e => e.target.style.borderColor = welcomeTheme.accent}
-            onBlur={e => e.target.style.borderColor = welcomeTheme.border}
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
+          {Object.entries(VISUAL_THEMES).map(([key, theme]) => (
+            <button key={key} onClick={() => setVTheme(key)} style={{
+              padding: "18px 20px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+              border: `2px solid ${vTheme === key ? theme.accent : theme.border}`,
+              background: vTheme === key ? `${theme.accent}15` : theme.bgCard,
+              color: theme.text, transition: "all 0.2s", display: "flex", gap: 16, alignItems: "center",
+            }}>
+              <span style={{ fontSize: 28 }}>{theme.emoji}</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{theme.name}</div>
+                <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>{theme.desc}</div>
+              </div>
+              {vTheme === key && <div style={{ marginLeft: "auto", color: theme.accent, fontSize: 18 }}>✓</div>}
+            </button>
+          ))}
         </div>
 
-        {/* Age group */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: welcomeTheme.fontSize.label, color: welcomeTheme.textMuted, marginBottom: 12, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase" }}>I am...</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {AGE_GROUPS.map(ag => {
-              const agT = THEMES[ag.id];
-              const isSelected = selectedAge === ag.id;
-              return (
-                <button
-                  key={ag.id}
-                  onClick={() => setSelectedAge(ag.id)}
-                  style={{
-                    padding: "18px 16px", borderRadius: 16, cursor: "pointer", textAlign: "left",
-                    border: `2px solid ${isSelected ? agT.accent : welcomeTheme.border}`,
-                    background: isSelected ? `${agT.accent}18` : welcomeTheme.bgCard,
-                    color: welcomeTheme.text, transition: "all 0.2s",
-                    transform: isSelected ? "scale(1.03)" : "scale(1)",
-                  }}
-                >
-                  <div style={{ fontSize: 30, marginBottom: 8 }}>{ag.emoji}</div>
-                  <div style={{ fontSize: welcomeTheme.fontSize.body, fontWeight: 700 }}>{ag.label}</div>
-                  <div style={{ fontSize: 11, color: welcomeTheme.textMuted, marginTop: 3 }}>{ag.ages}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <button
-          onClick={startWithProfile}
-          disabled={!selectedAge}
-          style={{
-            width: "100%", padding: selectedAge === "young" ? "18px" : "15px",
-            borderRadius: selectedAge === "young" ? 50 : 12,
-            border: "none", background: selectedAge ? welcomeTheme.accent : welcomeTheme.border,
-            color: selectedAge ? "#fff" : welcomeTheme.textFaint,
-            fontSize: selectedAge === "young" ? 18 : 15, fontWeight: 700,
-            cursor: selectedAge ? "pointer" : "not-allowed", transition: "all 0.2s",
-            fontFamily: welcomeTheme.font,
-          }}
-        >
-          {selectedAge === "young" ? "Let's go! 🚀" : selectedAge === "child" ? "Begin Mission 🚀" : selectedAge === "teen" ? "Start →" : "Start — takes about 5 minutes →"}
+        <button onClick={() => setScreen("profile")} style={{
+          width: "100%", padding: "16px", borderRadius: 12, border: "none",
+          background: VISUAL_THEMES[vTheme].accent, color: "#000", fontSize: 16, fontWeight: 800,
+          cursor: "pointer", letterSpacing: 1, fontFamily: "monospace",
+        }}>
+          CONTINUE →
         </button>
       </div>
     </div>
   );
 
-  // ==================== ASSESSMENT ====================
-  if (screen === "assessment") {
-    const scenario = SCENARIOS[assessIdx];
-    const starters = scenario?.starters?.[userProfile?.ageGroup] || [];
-    const hasAnswer = selectedStarters.length > 0 || input.trim().length > 0;
+  // ============================================
+  // SCREEN: PROFILE
+  // ============================================
+  if (screen === "profile") {
+    const pvt = VISUAL_THEMES[vTheme];
+    const AGE_OPTIONS = [
+      { id: "young", label: "Young Explorer", ages: "4–8",   emoji: "🌱" },
+      { id: "child", label: "Explorer",       ages: "9–12",  emoji: "🚀" },
+      { id: "teen",  label: "Teen",           ages: "13–17", emoji: "⚡" },
+      { id: "adult", label: "Adult",          ages: "18+",   emoji: "◈"  },
+    ];
+    return (
+      <div style={{ minHeight: "100vh", background: pvt.gradient || pvt.bg, color: pvt.text, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, fontFamily: "system-ui, sans-serif" }}>
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <div style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: 4, color: pvt.textMuted, textTransform: "uppercase", marginBottom: 20 }}>
+            Who are you, traveller?
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 12, color: pvt.textMuted, marginBottom: 8, fontFamily: "monospace", letterSpacing: 1 }}>YOUR NAME</div>
+            <input
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && chosenAge && (() => {
+                setUserName(nameInput.trim());
+                setAgeGroup(chosenAge);
+                setLevels({ clarity: 1, decomposition: 1, relationships: 1, outcomes: 1, gaps: 1, procedural: 1, evaluation: 1 });
+                persist({ userName: nameInput.trim(), ageGroup: chosenAge, levels: { clarity: 1, decomposition: 1, relationships: 1, outcomes: 1, gaps: 1, procedural: 1, evaluation: 1 }, totalSessions: 0, vTheme });
+                setScreen("intro");
+              })()}
+              placeholder="Optional — what should AXIS call you?"
+              style={{ width: "100%", padding: "13px 16px", borderRadius: 10, border: `2px solid ${pvt.border}`, background: pvt.bgInput, color: pvt.text, fontSize: 15, outline: "none", boxSizing: "border-box" }}
+              onFocus={e => e.target.style.borderColor = pvt.accent}
+              onBlur={e => e.target.style.borderColor = pvt.border}
+            />
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: pvt.textMuted, marginBottom: 12, fontFamily: "monospace", letterSpacing: 1 }}>YOUR LEVEL</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {AGE_OPTIONS.map(ag => (
+                <button key={ag.id} onClick={() => setChosenAge(ag.id)} style={{
+                  padding: "16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
+                  border: `2px solid ${chosenAge === ag.id ? pvt.accent : pvt.border}`,
+                  background: chosenAge === ag.id ? `${pvt.accent}18` : pvt.bgCard,
+                  color: pvt.text, transition: "all 0.2s",
+                  transform: chosenAge === ag.id ? "scale(1.03)" : "scale(1)",
+                }}>
+                  <div style={{ fontSize: 26, marginBottom: 6 }}>{ag.emoji}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{ag.label}</div>
+                  <div style={{ fontSize: 11, color: pvt.textMuted, marginTop: 2 }}>Ages {ag.ages}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            disabled={!chosenAge}
+            onClick={() => {
+              const initLevels = { clarity: 1, decomposition: 1, relationships: 1, outcomes: 1, gaps: 1, procedural: 1, evaluation: 1 };
+              setUserName(nameInput.trim());
+              setAgeGroup(chosenAge);
+              setLevels(initLevels);
+              persist({ userName: nameInput.trim(), ageGroup: chosenAge, levels: initLevels, totalSessions: 0, vTheme });
+              setScreen("intro");
+            }}
+            style={{
+              width: "100%", padding: "16px", borderRadius: 12, border: "none",
+              background: chosenAge ? pvt.accent : pvt.border,
+              color: chosenAge ? "#000" : pvt.textFaint,
+              fontSize: 15, fontWeight: 800, cursor: chosenAge ? "pointer" : "not-allowed",
+              letterSpacing: 1, fontFamily: "monospace",
+            }}
+          >
+            INITIALISE →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // SCREEN: STORY INTRO
+  // ============================================
+  if (screen === "intro") {
+    const introText = [
+      `${userName ? `${userName}.` : "You."} That's who you are.`,
+      `And AXIS has been waiting.`,
+      `It doesn't know you yet. It doesn't know what you want, what you're trying to build, or where you're trying to go.`,
+      `It's powerful. Impossibly so. But it is completely literal — it responds only to structured thought.`,
+      `The better you learn to think, the more AXIS can do.`,
+      `Seven abilities stand between you and full mastery. You'll unlock them one by one.`,
+      `Start with the first: FOCUS — the ability to turn a fuzzy thought into something AXIS can act on.`,
+    ];
+    const [step, setStep] = useState(0);
 
     return (
-      <div style={{ ...base, display: "flex", flexDirection: "column" }}>
-        {/* Header */}
-        <div style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: t.bgSecond }}>
-          <div style={{ fontFamily: "monospace", fontSize: 11, color: t.accent, letterSpacing: 2, textTransform: "uppercase" }}>
-            {userProfile?.ageGroup === "young" ? `Question ${assessIdx + 1} of ${SCENARIOS.length} 🌟` : `Quick Assessment · ${assessIdx + 1} of ${SCENARIOS.length}`}
+      <div style={{ minHeight: "100vh", background: vt.gradient || vt.bg, color: vt.text, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28, fontFamily: "system-ui, sans-serif" }}>
+        <div style={{ width: "100%", maxWidth: 520, textAlign: "center" }}>
+          <div style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: 4, color: vt.textMuted, textTransform: "uppercase", marginBottom: 32 }}>
+            Establishing connection...
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {SCENARIOS.map((_, i) => (
-              <div key={i} style={{ width: userProfile?.ageGroup === "young" ? 12 : 8, height: userProfile?.ageGroup === "young" ? 12 : 8, borderRadius: "50%", background: i < assessIdx ? t.accent : i === assessIdx ? t.accent + "88" : t.border, transition: "all 0.3s" }}/>
+
+          <div style={{ minHeight: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <p style={{ fontSize: 20, lineHeight: 1.8, color: step < introText.length - 1 ? vt.text : vt.accentWarm, fontWeight: step === 0 ? 700 : 400, transition: "all 0.3s" }}>
+              {introText[step]}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "24px 0" }}>
+            {introText.map((_, i) => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i <= step ? vt.accent : vt.border, transition: "all 0.3s" }}/>
+            ))}
+          </div>
+
+          {step < introText.length - 1 ? (
+            <button onClick={() => setStep(s => s + 1)} style={{
+              padding: "14px 40px", borderRadius: 50, border: `1px solid ${vt.border}`,
+              background: "transparent", color: vt.textMuted, fontSize: 14, cursor: "pointer", fontFamily: "monospace",
+            }}>
+              continue →
+            </button>
+          ) : (
+            <button onClick={() => setScreen("hub")} style={{
+              padding: "16px 48px", borderRadius: 12, border: "none",
+              background: vt.accent, color: "#000", fontSize: 15, fontWeight: 800,
+              cursor: "pointer", fontFamily: "monospace", letterSpacing: 1,
+              boxShadow: `0 0 32px ${vt.accent}66`,
+            }}>
+              BEGIN →
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // SCREEN: HUB
+  // ============================================
+  if (screen === "hub") {
+    return (
+      <div style={{ minHeight: "100vh", background: vt.gradient || vt.bg, color: vt.text, fontFamily: "system-ui, sans-serif" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 28px", borderBottom: `1px solid ${vt.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: vt.bgCard }}>
+          <div>
+            <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: vt.textMuted, textTransform: "uppercase" }}>AXIS Interface</div>
+            <div style={{ fontWeight: 700, fontSize: 17, marginTop: 2 }}>
+              {userName || "Traveller"} <span style={{ color: vt.accent, fontFamily: "monospace", fontSize: 12 }}>· {RANK_TITLES[overallLevel]} · L{overallLevel}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, color: vt.textMuted, fontFamily: "monospace" }}>SESSIONS</div>
+              <div style={{ fontFamily: "monospace", fontSize: 18, color: vt.accent, fontWeight: 700 }}>{totalSessions}</div>
+            </div>
+            <button onClick={() => { save(null); localStorage.removeItem(STORAGE_KEY); setScreen("theme"); setLevels({}); }} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${vt.border}`, background: "transparent", color: vt.textFaint, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
+              reset
+            </button>
+          </div>
+        </div>
+
+        {/* Level up toast */}
+        {justLevelledUp && (
+          <div style={{ position: "fixed", top: 80, left: "50%", transform: "translateX(-50%)", zIndex: 100, padding: "16px 28px", borderRadius: 14, background: justLevelledUp.color, color: "#000", fontFamily: "monospace", fontWeight: 700, fontSize: 15, boxShadow: `0 0 40px ${justLevelledUp.color}`, animation: "fadeUp 0.4s ease" }}>
+            ↑ {justLevelledUp.name} levelled up!
+          </div>
+        )}
+
+        <div style={{ padding: "28px", maxWidth: 900, margin: "0 auto" }}>
+          {/* Intro nudge for new players */}
+          {totalSessions === 0 && (
+            <div style={{ padding: "18px 22px", borderRadius: 14, border: `1px solid ${vt.accent}44`, background: `${vt.accent}0A`, marginBottom: 28 }}>
+              <div style={{ fontFamily: "monospace", fontSize: 11, color: vt.accent, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Your first quest awaits</div>
+              <div style={{ fontSize: 14, color: vt.textMuted, lineHeight: 1.6 }}>
+                Start with <strong style={{ color: vt.text }}>FOCUS</strong> — tap the card below to begin. Each ability unlocks the next. Sessions take 2–5 minutes.
+              </div>
+            </div>
+          )}
+
+          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: vt.textMuted, textTransform: "uppercase", marginBottom: 16 }}>Your Abilities</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+            {ABILITIES.map(ability => (
+              <AbilityCard
+                key={ability.id}
+                ability={ability}
+                level={levels[ability.id] || 1}
+                unlocked={isUnlocked(ability)}
+                onClick={() => startQuest(ability)}
+                vt={vt}
+              />
             ))}
           </div>
         </div>
 
-        {/* Hint bar */}
-        <div style={{ padding: "8px 20px", background: t.bgSecond, borderBottom: `1px solid ${t.border}` }}>
-          <span style={{ fontSize: 12, color: t.textMuted, fontFamily: "monospace" }}>
-            {userProfile?.ageGroup === "young" ? "👆 Tap the bubbles or type your answer below!" :
-             userProfile?.ageGroup === "child" ? "💡 Tap bubbles to build your answer, or type it yourself" :
-             "💡 Select bubbles to build your answer · ~10 words is plenty"}
-          </span>
+        <style>{`@keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
+      </div>
+    );
+  }
+
+  // ============================================
+  // SCREEN: QUEST
+  // ============================================
+  if (screen === "quest" && activeAbility) {
+    const quest = QUESTS.find(q => q.abilityId === activeAbility.id);
+    const starters = quest?.starters?.[ageGroup] || [];
+    const showBubbles = !loading && messages.length <= 2;
+
+    return (
+      <div style={{ height: "100vh", background: vt.bg, color: vt.text, fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "14px 20px", borderBottom: `1px solid ${vt.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: vt.bgCard, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 20, color: activeAbility.color }}>{activeAbility.icon}</span>
+            <div>
+              <div style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: activeAbility.color, letterSpacing: 2 }}>{activeAbility.name}</div>
+              <div style={{ fontSize: 11, color: vt.textMuted }}>{quest?.title}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ fontFamily: "monospace", fontSize: 11, color: vt.textMuted }}>
+              L{levels[activeAbility.id] || 1} · {RANK_TITLES[levels[activeAbility.id] || 1]}
+            </div>
+            <button onClick={returnToHub} style={{ padding: "7px 16px", borderRadius: 8, border: `1px solid ${activeAbility.color}66`, background: "transparent", color: activeAbility.color, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "monospace" }}>
+              ← Hub
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 8px" }}>
-          {messages.map((m, i) => <ChatMsg key={i} role={m.role} content={m.content} t={t}/>)}
-          {loading && <Dots t={t}/>}
+        <div style={{ flex: 1, overflowY: "auto", padding: "22px 22px 8px" }}>
+          {messages.map((m, i) => <Msg key={i} role={m.role} content={m.content} vt={vt} isAxis={true}/>)}
+          {loading && <Thinking vt={vt}/>}
           <div ref={chatEnd}/>
         </div>
 
-        {/* Starters */}
-        {!loading && <StarterBubbles starters={starters} selected={selectedStarters} onToggle={toggleStarter} t={t}/>}
+        {/* Bubbles */}
+        {showBubbles && <Bubbles options={starters} selected={selected} onToggle={toggleBubble} vt={vt}/>}
+
+        {/* Selected preview */}
+        {selected.length > 0 && (
+          <div style={{ padding: "0 20px 10px" }}>
+            <div style={{ padding: "8px 14px", borderRadius: 8, background: `${activeAbility.color}18`, border: `1px solid ${activeAbility.color}44`, fontSize: 12, color: activeAbility.color, fontFamily: "monospace" }}>
+              → "{selected.join(" ")}{input ? " " + input : ""}"
+            </div>
+          </div>
+        )}
 
         {/* Input */}
-        <div style={{ padding: "8px 20px 20px", borderTop: `1px solid ${t.border}`, background: t.bgSecond }}>
-          {selectedStarters.length > 0 && (
-            <div style={{ marginBottom: 8, padding: "8px 12px", borderRadius: 8, background: `${t.accent}18`, border: `1px solid ${t.accent}44`, fontSize: 12, color: t.accent, fontFamily: "monospace" }}>
-              Building: "{selectedStarters.join(" ")}{input ? " " + input : ""}"
-            </div>
-          )}
+        <div style={{ padding: "10px 20px 20px", borderTop: `1px solid ${vt.border}`, background: vt.bgCard, flexShrink: 0 }}>
           <div style={{ display: "flex", gap: 10 }}>
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleAssessAnswer()}
-              placeholder={selectedStarters.length > 0 ? "Add more..." : (userProfile?.ageGroup === "young" ? "Type here too! ✏️" : "Your answer...")}
-              style={{ flex: 1, padding: "12px 16px", borderRadius: userProfile?.ageGroup === "young" ? 50 : 10, border: `2px solid ${t.border}`, background: t.bgInput, color: t.text, fontSize: t.inputSize, outline: "none", fontFamily: t.font }}
-              onFocus={e => e.target.style.borderColor = t.accent}
-              onBlur={e => e.target.style.borderColor = t.border}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendAnswer()}
+              placeholder={selected.length > 0 ? "Add more, or just send →" : "Send a command to AXIS..."}
+              style={{ flex: 1, padding: "13px 18px", borderRadius: 10, border: `2px solid ${vt.border}`, background: vt.bgInput, color: vt.text, fontSize: 15, outline: "none" }}
+              onFocus={e => e.target.style.borderColor = activeAbility.color}
+              onBlur={e => e.target.style.borderColor = vt.border}
             />
             <button
-              onClick={handleAssessAnswer}
+              onClick={sendAnswer}
               disabled={loading || !hasAnswer}
-              style={{ padding: "12px 20px", borderRadius: userProfile?.ageGroup === "young" ? 50 : 10, border: "none", background: (loading || !hasAnswer) ? t.border : t.accent, color: "#fff", fontSize: 18, fontWeight: 700, cursor: (loading || !hasAnswer) ? "not-allowed" : "pointer" }}
+              style={{ padding: "13px 22px", borderRadius: 10, border: "none", background: (loading || !hasAnswer) ? vt.border : activeAbility.color, color: "#000", fontSize: 18, fontWeight: 800, cursor: (loading || !hasAnswer) ? "not-allowed" : "pointer", transition: "all 0.15s" }}
             >
               →
             </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ==================== TRAINING ====================
-  if (screen === "training" && activeSkill) {
-    const level = skillLevels[activeSkill.id] || 1;
-    const scenario = SCENARIOS.find(s => s.skill === activeSkill.id);
-    const starters = scenario?.starters?.[userProfile?.ageGroup] || [];
-    const hasAnswer = selectedStarters.length > 0 || input.trim().length > 0;
-    const showStarters = !loading && messages.length <= 2;
-
-    return (
-      <div style={{ ...base, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "14px 20px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: t.bgSecond }}>
-          <div style={{ fontFamily: "monospace", fontSize: 11, color: activeSkill.color, letterSpacing: 2, textTransform: "uppercase" }}>
-            {activeSkill.icon} {activeSkill.name} · Level {level}
-          </div>
-          <button onClick={completeSession} style={{ padding: "6px 16px", borderRadius: 8, border: `1px solid ${activeSkill.color}`, background: "transparent", color: activeSkill.color, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "monospace" }}>
-            Done →
-          </button>
-        </div>
-
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 8px" }}>
-          {messages.map((m, i) => <ChatMsg key={i} role={m.role} content={m.content} t={t}/>)}
-          {loading && <Dots t={t}/>}
-          <div ref={chatEnd}/>
-        </div>
-
-        {showStarters && <StarterBubbles starters={starters} selected={selectedStarters} onToggle={toggleStarter} t={t}/>}
-
-        <div style={{ padding: "8px 20px 20px", borderTop: `1px solid ${t.border}`, background: t.bgSecond }}>
-          {selectedStarters.length > 0 && (
-            <div style={{ marginBottom: 8, padding: "8px 12px", borderRadius: 8, background: `${activeSkill.color}18`, border: `1px solid ${activeSkill.color}44`, fontSize: 12, color: activeSkill.color, fontFamily: "monospace" }}>
-              Building: "{selectedStarters.join(" ")}{input ? " " + input : ""}"
-            </div>
-          )}
-          <div style={{ display: "flex", gap: 10 }}>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleTrainingResponse()}
-              placeholder={selectedStarters.length > 0 ? "Add more..." : "Your response..."}
-              style={{ flex: 1, padding: "12px 16px", borderRadius: userProfile?.ageGroup === "young" ? 50 : 10, border: `2px solid ${t.border}`, background: t.bgInput, color: t.text, fontSize: t.inputSize, outline: "none", fontFamily: t.font }}
-              onFocus={e => e.target.style.borderColor = activeSkill.color}
-              onBlur={e => e.target.style.borderColor = t.border}
-            />
-            <button
-              onClick={handleTrainingResponse}
-              disabled={loading || !hasAnswer}
-              style={{ padding: "12px 20px", borderRadius: userProfile?.ageGroup === "young" ? 50 : 10, border: "none", background: (loading || !hasAnswer) ? t.border : activeSkill.color, color: "#fff", fontSize: 18, fontWeight: 700, cursor: (loading || !hasAnswer) ? "not-allowed" : "pointer" }}
-            >
-              →
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ==================== DASHBOARD ====================
-  if (screen === "dashboard") {
-    const ageGroup = AGE_GROUPS.find(a => a.id === userProfile?.ageGroup);
-    return (
-      <div style={{ ...base, display: "flex", overflow: "hidden" }}>
-        {/* Sidebar */}
-        <div style={{ width: 300, borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column", background: t.bgSecond, flexShrink: 0, overflow: "hidden" }}>
-          <div style={{ padding: "18px 16px 10px" }}>
-            <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: t.textMuted, textTransform: "uppercase", marginBottom: 4 }}>
-              THINK<span style={{ color: t.accent }}>FIRST</span>
-            </div>
-            <div style={{ fontSize: 12, color: t.textMuted }}>
-              {userProfile?.name ? `${userProfile.name} · ` : ""}{ageGroup?.label} · {sessions} sessions · Avg L{avgLevel}
-            </div>
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
-            <SkillRadar skills={skillLevels} t={t}/>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "6px 12px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
-            {SKILLS.map(s => {
-              const level = skillLevels[s.id] || 0;
-              return (
-                <div key={s.id} onClick={() => startTraining(s)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `1px solid ${t.border}`, background: t.bgCard, transition: "all 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = s.color}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = t.border}
-                >
-                  <span style={{ color: s.color, fontSize: 15 }}>{s.icon}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: t.text, marginBottom: 4 }}>{s.name}</div>
-                    <div style={{ height: 4, background: t.border, borderRadius: 2 }}>
-                      <div style={{ height: "100%", width: `${level * 10}%`, background: s.color, borderRadius: 2, transition: "width 0.5s" }}/>
-                    </div>
-                  </div>
-                  <div style={{ fontFamily: "monospace", fontSize: 11, color: s.color, fontWeight: 700 }}>{level}/10</div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ padding: "10px 12px", borderTop: `1px solid ${t.border}` }}>
-            <button onClick={reset} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textFaint, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>Reset</button>
-          </div>
-        </div>
-
-        {/* Main */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "30px 32px" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 700, letterSpacing: -0.5, fontFamily: t.font }}>
-            {userProfile?.name ? `Hi ${userProfile.name}.` : "Your Profile."}
-          </h2>
-          <p style={{ color: t.textMuted, fontSize: 13, margin: "0 0 24px" }}>Pick a skill to train. Sessions are short — 2 to 5 minutes.</p>
-
-          {/* Recommended */}
-          <div onClick={() => startTraining(recommended)} style={{ padding: "20px 24px", borderRadius: 14, border: `1px solid ${recommended.color}33`, background: `${recommended.color}08`, cursor: "pointer", marginBottom: 24, transition: "all 0.2s" }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = recommended.color}
-            onMouseLeave={e => e.currentTarget.style.borderColor = `${recommended.color}33`}
-          >
-            <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 2, color: recommended.color, textTransform: "uppercase", marginBottom: 10 }}>Recommended</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <span style={{ fontSize: 26, color: recommended.color }}>{recommended.icon}</span>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, fontFamily: t.font }}>
-                  {recommended.name}
-                  <span style={{ fontFamily: "monospace", fontSize: 11, color: recommended.color, marginLeft: 10 }}>L{skillLevels[recommended.id] || 1}</span>
-                </div>
-                <div style={{ fontSize: 12, color: t.textMuted, marginTop: 3 }}>{skillDetails[recommended.id]?.feedback || recommended.short}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* All skills */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {SKILLS.map(s => {
-              const level = skillLevels[s.id] || 0;
-              const levelName = LEVELS[Math.max(0, level - 1)]?.name;
-              return (
-                <div key={s.id} onClick={() => startTraining(s)} style={{ padding: "14px 16px", borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgCard, cursor: "pointer", transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = s.color; e.currentTarget.style.background = `${s.color}08`; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.background = t.bgCard; }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, fontFamily: t.font }}><span style={{ color: s.color, marginRight: 8 }}>{s.icon}</span>{s.name}</div>
-                    <div style={{ padding: "2px 8px", borderRadius: 6, background: `${s.color}22`, color: s.color, fontFamily: "monospace", fontSize: 10 }}>L{level} {levelName}</div>
-                  </div>
-                  <div style={{ fontSize: 11, color: t.textMuted }}>{skillDetails[s.id]?.feedback || s.short}</div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
