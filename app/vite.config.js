@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [react()],
   // base: tells Vite all assets live under /app on the live site
   // Without this, the built HTML references /assets/... but they're at /app/assets/...
-  base: "/app",
+  base: "/engine/",
   build: {
-    outDir: "../app-dist",
+    outDir: "../engine",
     emptyOutDir: true,
   },
   // In dev mode, proxy /api/claude to Netlify Functions running locally

@@ -21,19 +21,11 @@
 # Serve the React app at /app — any path under /app/* is handled by the
 # React app's index.html (client-side routing). The 200 status means
 # "serve this file, don't redirect" — essential for single-page apps.
+# SPA fallback: any unknown path under /engine serves the React app's index.html
+# Netlify serves /engine/ as a real directory (built by Vite), no rewriting needed
 [[redirects]]
-  from = "/app"
-  to = "/app-dist/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/app/assets/*"
-  to = "/app-dist/assets/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/app/*"
-  to = "/app-dist/index.html"
+  from = "/engine/*"
+  to = "/engine/index.html"
   status = 200
 
 [[headers]]
