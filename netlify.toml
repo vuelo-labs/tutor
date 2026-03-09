@@ -1,6 +1,19 @@
 [build]
   publish = "."
 
+# Netlify Functions config
+# Functions are Node.js code that runs server-side on Netlify's infrastructure
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# This rewrites /api/claude → the claude.js function
+# So the frontend calls /api/claude (a relative URL, no domain hardcoded)
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
