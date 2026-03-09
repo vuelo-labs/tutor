@@ -1,4 +1,8 @@
 [build]
+  # Build command: compile the React app with Vite
+  # publish: the root "." serves the landing page (index.html)
+  # The React app build output (app-dist/) is served at /app via the redirect below
+  command = "cd app && npm install && npm run build"
   publish = "."
 
 # Netlify Functions config
@@ -12,6 +16,19 @@
 [[redirects]]
   from = "/api/claude"
   to = "/.netlify/functions/claude"
+  status = 200
+
+# Serve the React app at /app — any path under /app/* is handled by the
+# React app's index.html (client-side routing). The 200 status means
+# "serve this file, don't redirect" — essential for single-page apps.
+[[redirects]]
+  from = "/app"
+  to = "/app-dist/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/*"
+  to = "/app-dist/index.html"
   status = 200
 
 [[headers]]
