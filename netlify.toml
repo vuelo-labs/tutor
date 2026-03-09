@@ -27,6 +27,11 @@
   status = 200
 
 [[redirects]]
+  from = "/app/assets/*"
+  to = "/app-dist/assets/:splat"
+  status = 200
+
+[[redirects]]
   from = "/app/*"
   to = "/app-dist/index.html"
   status = 200
