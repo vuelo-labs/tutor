@@ -672,11 +672,7 @@ export default function ThinkFirstEngine() {
   const [totalSessions, setTotalSessions] = useState(0);
   const [justLevelledUp, setJustLevelledUp] = useState(null);
   const [introStep, setIntroStep]     = useState(0);
-  const [nameInput, setNameInput]     = useState("");
-  const [emailInput, setEmailInput]   = useState("");
-  const [emailError, setEmailError]   = useState("");
-  const [emailBusy, setEmailBusy]     = useState(false);
-  const [chosenAge, setChosenAge]     = useState(null);
+  const [introInput, setIntroInput]   = useState("");
   const [zeroPairIdx, setZeroPairIdx] = useState(0);
   const [zeroPhase, setZeroPhase]     = useState("question"); // question | insight | next
   const [zeroChosen, setZeroChosen]   = useState(null);
@@ -712,20 +708,18 @@ export default function ThinkFirstEngine() {
 
   useEffect(() => {
     const saved = loadState();
-    if (saved?.ageGroup && saved?.levels && Object.keys(saved.levels).length > 0) {
-      setTheme(saved.theme || "forest");
+    if (saved?.levels && Object.keys(saved.levels).length > 0) {
+      setTheme(saved.theme || "studio");
       setUserName(saved.userName || "");
-      setAgeGroup(saved.ageGroup);
+      setAgeGroup(saved.ageGroup || "adult");
       setLevels(saved.levels);
       setTotalSessions(saved.totalSessions || 0);
       setScaffoldDial(saved.scaffoldDial ?? 1);
       setOutputLevels(saved.outputLevels || {});
       setOutputZeroSeen(saved.outputZeroSeen || {});
       setScreen("hub");
-    } else if (saved?.emailCaptured) {
-      setScreen("theme");
     } else {
-      setScreen("email");
+      setScreen("onboard");
     }
   }, []);
 
@@ -758,7 +752,7 @@ export default function ThinkFirstEngine() {
       const initLevels = Object.fromEntries(ABILITIES.map(a => [a.id, 1]));
       setLevels(initLevels);
       persist({ userName, ageGroup, levels: initLevels, totalSessions: 0, scaffoldDial, theme });
-      setScreen("intro");
+      setScreen("hub");
     }
   };
 
@@ -885,241 +879,86 @@ export default function ThinkFirstEngine() {
     ? Math.max(1, Math.round(Object.values(outputLevels).reduce((a, b) => a + b, 0) / Object.keys(outputLevels).length))
     : 0;
 
-  const AGE_OPTIONS = [
-    { id: "young", label: "Young Explorer", ages: "4–8",   emoji: "🌱" },
-    { id: "child", label: "Explorer",       ages: "9–12",  emoji: "🚀" },
-    { id: "teen",  label: "Teen",           ages: "13–17", emoji: "⚡" },
-    { id: "adult", label: "Adult",          ages: "18+",   emoji: "◈"  },
-  ];
-
   const base = {
     minHeight: "100vh", background: nt.gradient || nt.bg,
     color: nt.text, fontFamily: "system-ui, sans-serif",
   };
 
-  // ==================== EMAIL GATE ====================
-  // Warm, human, pre-theme — deliberately different from the engine aesthetic
-  if (screen === "email") {
-    const handleEmailSubmit = async () => {
-      setEmailError("");
-      const val = emailInput.trim();
-      if (!val) { setEmailError("An email helps us send you one useful thing a week."); return; }
-      setEmailBusy(true);
-      try {
-        const res = await fetch("/api/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: val }),
-        });
-        const data = await res.json();
-        if (!data.ok) { setEmailError(data.error || "Something went wrong. Try again."); setEmailBusy(false); return; }
-        saveState({ ...(loadState() || {}), emailCaptured: true });
-        setScreen("theme");
-      } catch {
-        setEmailError("Couldn't connect. Check your internet and try again.");
-        setEmailBusy(false);
-      }
-    };
+  // ==================== LOADING ====================
+  if (screen === "loading") return (
+    <div style={{ minHeight: "100vh", background: W.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ color: W.faint, fontFamily: "monospace", fontSize: 13 }}>·</div>
+    </div>
+  );
 
-    const skip = () => {
-      saveState({ ...(loadState() || {}), emailCaptured: true });
-      setScreen("theme");
+  // ==================== ONBOARD ====================
+  if (screen === "onboard") {
+    const CHIPS = ["I lead a team", "I use AI tools daily", "I work in tech", "I work in marketing", "I work with data", "I'm figuring AI out"];
+
+    const handleIntroSubmit = () => {
+      const text = introInput.trim();
+      const nameMatch = text.match(/(?:i'm|i am|my name is|call me)\s+([A-Za-z]+)/i);
+      const parsedName = nameMatch ? nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1).toLowerCase() : "";
+      setUserName(parsedName);
+      setAgeGroup("adult");
+      setTheme("studio");
+      setZeroPairIdx(0);
+      setZeroPhase("question");
+      setZeroChosen(null);
+      setScreen("zero");
     };
 
     return (
       <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.8s ease" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First</div>
 
-          <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
-            Think First
-          </div>
-
-          <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 400, lineHeight: 1.35, margin: "0 0 16px", color: W.text, fontStyle: "italic" }}>
-            The people who matter most to you<br/>deserve your full attention.
-          </h1>
-
-          <p style={{ fontSize: 15, lineHeight: 1.8, color: W.muted, margin: "0 0 32px" }}>
-            We're building tools to help you save your mental bandwidth for them. One idea a week. Nothing more.
-          </p>
-
-          <div style={{ marginBottom: 8 }}>
-            <input
-              type="email"
-              value={emailInput}
-              onChange={e => { setEmailInput(e.target.value); setEmailError(""); }}
-              onKeyDown={e => e.key === "Enter" && !emailBusy && handleEmailSubmit()}
-              placeholder="your@email.com"
-              autoFocus
-              style={{
-                width: "100%", padding: "12px 16px", fontSize: 15,
-                border: `1px solid ${emailError ? "#DC2626" : W.border}`,
-                borderRadius: 8, background: W.bgInput, color: W.text,
-                fontFamily: W.sans, outline: "none",
-                boxSizing: "border-box", transition: "border-color 0.2s",
-              }}
-              onFocus={e => e.target.style.borderColor = W.borderFocus}
-              onBlur={e => e.target.style.borderColor = emailError ? "#DC2626" : W.border}
-            />
-          </div>
-
-          {emailError && (
-            <p style={{ fontSize: 13, color: "#DC2626", margin: "6px 0 0" }}>
-              {emailError}
+          <div style={{ padding: "20px 22px", borderRadius: 12, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 28 }}>
+            <div style={{ fontSize: 10, letterSpacing: 2, color: W.accent, marginBottom: 10, textTransform: "uppercase" }}>Think First</div>
+            <p style={{ fontFamily: W.serif, fontSize: "1.1rem", lineHeight: 1.85, color: W.text, margin: 0, fontStyle: "italic" }}>
+              Hi — I help people work more clearly with machines. Before we start, tell me a little about yourself.
             </p>
-          )}
+            <p style={{ fontSize: 13, lineHeight: 1.75, color: W.muted, margin: "10px 0 0" }}>
+              What do you do? Where does AI show up in your day? No wrong answers.
+            </p>
+          </div>
 
-          <button
-            onClick={handleEmailSubmit}
-            disabled={emailBusy}
-            style={{
-              width: "100%", marginTop: 10, padding: "12px",
-              background: emailBusy ? W.border : W.text,
-              color: emailBusy ? W.faint : W.bg,
-              border: "none", borderRadius: 8, fontSize: 14,
-              fontFamily: W.sans, fontWeight: 600,
-              cursor: emailBusy ? "not-allowed" : "pointer",
-              transition: "all 0.2s", letterSpacing: 0.3,
-            }}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {CHIPS.map(chip => (
+              <button key={chip}
+                onClick={() => setIntroInput(v => v ? `${v}, ${chip.toLowerCase()}` : chip)}
+                style={{ padding: "8px 14px", borderRadius: 50, fontSize: 13, border: `1px solid ${W.border}`, background: W.bgCard, color: W.muted, cursor: "pointer", fontFamily: W.sans, transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = W.accent; e.currentTarget.style.color = W.text; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = W.border; e.currentTarget.style.color = W.muted; }}
+              >{chip}</button>
+            ))}
+          </div>
+
+          <textarea
+            value={introInput}
+            onChange={e => setIntroInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleIntroSubmit(); }}}
+            placeholder="e.g. I'm Sarah, I run a marketing team and I'm trying to get better at using AI without it feeling like chaos..."
+            rows={3}
+            style={{ width: "100%", padding: "13px 16px", fontSize: 14, lineHeight: 1.7, border: `1px solid ${W.border}`, borderRadius: 8, background: W.bgInput, color: W.text, fontFamily: W.sans, outline: "none", resize: "none", boxSizing: "border-box", transition: "border-color 0.2s" }}
+            onFocus={e => e.target.style.borderColor = W.borderFocus}
+            onBlur={e => e.target.style.borderColor = W.border}
+          />
+
+          <button onClick={handleIntroSubmit} style={{ width: "100%", marginTop: 10, padding: "13px", background: W.text, color: W.bg, border: "none", borderRadius: 8, fontSize: 14, fontFamily: W.sans, fontWeight: 600, cursor: "pointer", transition: "opacity 0.2s", letterSpacing: 0.3 }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
-            {emailBusy ? "one moment..." : "I'm in →"}
+            Let's begin →
           </button>
 
-          <div style={{ textAlign: "center", marginTop: 16 }}>
-            <button
-              onClick={skip}
-              style={{ background: "none", border: "none", color: W.faint, fontSize: 13, cursor: "pointer", fontFamily: W.sans, textDecoration: "underline", textUnderlineOffset: 3 }}
-            >
-              explore first, no email needed
-            </button>
-          </div>
-
-          <p style={{ fontSize: 12, color: W.faint, textAlign: "center", marginTop: 28, lineHeight: 1.7 }}>
-            No spam. No selling. Unsubscribe any time.<br/>Your email is stored securely and never shared.
+          <p style={{ fontSize: 12, color: W.faint, textAlign: "center", marginTop: 14, lineHeight: 1.6 }}>
+            Or just press the button and we'll start from scratch.
           </p>
         </div>
       </div>
     );
   }
-
-  // ==================== LOADING ====================
-  if (screen === "loading") return (
-    <div style={{ ...base, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: nt.textMuted, fontFamily: "monospace", fontSize: 13 }}>·</div>
-    </div>
-  );
-
-  // ==================== THEME SELECT ====================
-  if (screen === "theme") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.8s ease" }}>
-      <div style={{ width: "100%", maxWidth: 440 }}>
-        <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First</div>
-        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 400, lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
-          Where does your mind feel at home?
-        </h1>
-        <p style={{ color: W.muted, fontSize: 15, margin: "0 0 32px", lineHeight: 1.8, fontFamily: W.sans }}>
-          Same skills, three different contexts. Pick whichever fits how you think today — you can always change it.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-          {Object.values(NARRATIVE_THEMES).map(t => (
-            <button key={t.id} onClick={() => setTheme(t.id)} style={{
-              padding: "16px 18px", borderRadius: 8, cursor: "pointer", textAlign: "left",
-              border: `1px solid ${theme === t.id ? W.accent : W.border}`,
-              background: theme === t.id ? W.accentLight : W.bgCard,
-              color: W.text, transition: "all 0.25s",
-              display: "flex", gap: 16, alignItems: "center",
-            }}
-              onMouseEnter={e => { if (theme !== t.id) e.currentTarget.style.borderColor = W.accentSoft; }}
-              onMouseLeave={e => { if (theme !== t.id) e.currentTarget.style.borderColor = W.border; }}
-            >
-              <span style={{ fontSize: 26, flexShrink: 0 }}>{t.emoji}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: W.serif, fontWeight: 600, fontSize: 16, marginBottom: 3, color: W.text }}>{t.name}</div>
-                <div style={{ fontSize: 13, color: W.muted, lineHeight: 1.5 }}>{t.desc}</div>
-              </div>
-              {theme === t.id && <div style={{ color: W.accent, fontSize: 16, flexShrink: 0 }}>✓</div>}
-            </button>
-          ))}
-        </div>
-        <button onClick={() => setScreen("profile")} style={{
-          width: "100%", padding: "13px", borderRadius: 8, border: "none",
-          background: W.text, color: W.bg, fontSize: 14, fontWeight: 600,
-          cursor: "pointer", fontFamily: W.sans, letterSpacing: 0.3, transition: "opacity 0.2s",
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-        >
-          Continue →
-        </button>
-      </div>
-    </div>
-  );
-
-  // ==================== PROFILE ====================
-  if (screen === "profile") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.8s ease" }}>
-      <div style={{ width: "100%", maxWidth: 440 }}>
-        <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
-        <h2 style={{ fontFamily: W.serif, fontWeight: 400, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
-          Before we begin, a quick question.
-        </h2>
-        <div style={{ padding: "16px 18px", borderRadius: 10, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 24 }}>
-          <p style={{ fontSize: 13, lineHeight: 1.8, color: W.muted, margin: 0 }}>
-            Your brain fills in gaps, reads tone, and makes intuitive leaps.<br/>
-            A machine does exactly what you tell it — no more, no less.<br/>
-            <span style={{ color: W.text }}>These skills are how you bridge that gap — and still stay human.</span>
-          </p>
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: W.muted, marginBottom: 8, letterSpacing: 0.5 }}>Your name <span style={{ color: W.faint }}>(optional)</span></div>
-          <input
-            value={nameInput}
-            onChange={e => setNameInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && chosenAge && document.getElementById("profile-continue")?.click()}
-            placeholder="What should we call you?"
-            style={{ width: "100%", padding: "13px 16px", borderRadius: 10, border: `1.5px solid ${W.border}`, background: W.bgInput, color: W.text, fontSize: 15, outline: "none", boxSizing: "border-box", fontFamily: W.sans, transition: "border-color 0.2s" }}
-            onFocus={e => e.target.style.borderColor = W.accent}
-            onBlur={e => e.target.style.borderColor = W.border}
-          />
-        </div>
-
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, color: W.muted, marginBottom: 12, letterSpacing: 0.5 }}>Your stage</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {AGE_OPTIONS.map(ag => (
-              <button key={ag.id} onClick={() => setChosenAge(ag.id)} style={{
-                padding: "16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
-                border: `2px solid ${chosenAge === ag.id ? W.accent : W.border}`,
-                background: chosenAge === ag.id ? W.accentLight : W.bgCard,
-                color: W.text, transition: "all 0.2s",
-              }}>
-                <div style={{ fontSize: 22, marginBottom: 6 }}>{ag.emoji}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, fontFamily: W.sans }}>{ag.label}</div>
-                <div style={{ fontSize: 12, color: W.muted, marginTop: 2 }}>{ag.ages}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button id="profile-continue" disabled={!chosenAge} onClick={() => {
-          setUserName(nameInput.trim());
-          setAgeGroup(chosenAge);
-          setZeroPairIdx(0);
-          setZeroPhase("question");
-          setZeroChosen(null);
-          setScreen("zero");
-        }} style={{
-          width: "100%", padding: "13px", borderRadius: 8, border: "none",
-          background: chosenAge ? W.text : W.border,
-          color: chosenAge ? W.bg : W.faint,
-          fontSize: 14, fontWeight: 600, cursor: chosenAge ? "pointer" : "not-allowed",
-          fontFamily: W.sans, transition: "all 0.2s",
-        }}>
-          {theme === "forest" ? "Enter the forest →" : theme === "studio" ? "Open the studio →" : "Begin →"}
-        </button>
-      </div>
-    </div>
-  );
 
   // ==================== ZERO SESSION ====================
   if (screen === "zero") {
@@ -1359,7 +1198,7 @@ export default function ThinkFirstEngine() {
               <div style={{ fontSize: 10, color: nt.textMuted, fontFamily: "monospace" }}>SESSIONS</div>
               <div style={{ fontFamily: "monospace", fontSize: 17, color: nt.accent, fontWeight: 700 }}>{totalSessions}</div>
             </div>
-            <button onClick={() => { localStorage.removeItem(STORAGE_KEY); setLevels({}); setScreen("theme"); }} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textFaint, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>
+            <button onClick={() => { localStorage.removeItem(STORAGE_KEY); setLevels({}); setScreen("onboard"); }} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textFaint, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>
               reset
             </button>
           </div>
