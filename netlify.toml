@@ -11,6 +11,12 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# This rewrites /api/subscribe → the subscribe.js function
+[[redirects]]
+  from = "/api/subscribe"
+  to = "/.netlify/functions/subscribe"
+  status = 200
+
 # This rewrites /api/claude → the claude.js function
 # So the frontend calls /api/claude (a relative URL, no domain hardcoded)
 [[redirects]]

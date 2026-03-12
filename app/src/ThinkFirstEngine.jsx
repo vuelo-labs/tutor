@@ -623,6 +623,9 @@ export default function ThinkFirstEngine() {
   const [justLevelledUp, setJustLevelledUp] = useState(null);
   const [introStep, setIntroStep]     = useState(0);
   const [nameInput, setNameInput]     = useState("");
+  const [emailInput, setEmailInput]   = useState("");
+  const [emailError, setEmailError]   = useState("");
+  const [emailBusy, setEmailBusy]     = useState(false);
   const [chosenAge, setChosenAge]     = useState(null);
   const [zeroPairIdx, setZeroPairIdx] = useState(0);
   const [zeroPhase, setZeroPhase]     = useState("question"); // question | insight | next
@@ -653,13 +656,16 @@ export default function ThinkFirstEngine() {
       setOutputLevels(saved.outputLevels || {});
       setOutputZeroSeen(saved.outputZeroSeen || {});
       setScreen("hub");
-    } else {
+    } else if (saved?.emailCaptured) {
       setScreen("theme");
+    } else {
+      setScreen("email");
     }
   }, []);
 
   function persist(updates) {
-    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, ...updates });
+    const saved = loadState() || {};
+    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, emailCaptured: saved.emailCaptured || false, ...updates });
   }
 
   // Scaffolding dial adjustment
@@ -824,6 +830,116 @@ export default function ThinkFirstEngine() {
     minHeight: "100vh", background: nt.gradient || nt.bg,
     color: nt.text, fontFamily: "system-ui, sans-serif",
   };
+
+  // ==================== EMAIL GATE ====================
+  // Warm, human, pre-theme — deliberately different from the engine aesthetic
+  if (screen === "email") {
+    const handleEmailSubmit = async () => {
+      setEmailError("");
+      const val = emailInput.trim();
+      if (!val) { setEmailError("An email helps us send you one useful thing a week."); return; }
+      setEmailBusy(true);
+      try {
+        const res = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: val }),
+        });
+        const data = await res.json();
+        if (!data.ok) { setEmailError(data.error || "Something went wrong. Try again."); setEmailBusy(false); return; }
+        saveState({ ...(loadState() || {}), emailCaptured: true });
+        setScreen("theme");
+      } catch {
+        setEmailError("Couldn't connect. Check your internet and try again.");
+        setEmailBusy(false);
+      }
+    };
+
+    const skip = () => {
+      saveState({ ...(loadState() || {}), emailCaptured: true });
+      setScreen("theme");
+    };
+
+    const warm = {
+      bg: "#FAF7F2", text: "#1C1917", muted: "#78716C",
+      faint: "#A8A29E", border: "#E7E2DA", accent: "#B45309",
+      accentSoft: "#D97706", card: "#F5F0E8",
+    };
+
+    return (
+      <div style={{ minHeight: "100vh", background: warm.bg, color: warm.text, fontFamily: "'Georgia', 'Times New Roman', serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+        <div style={{ width: "100%", maxWidth: 440 }}>
+
+          <div style={{ fontFamily: "system-ui, sans-serif", fontSize: 10, letterSpacing: 4, color: warm.faint, textTransform: "uppercase", marginBottom: 32 }}>
+            Think First
+          </div>
+
+          <h1 style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.4, margin: "0 0 16px", color: warm.text, fontStyle: "italic" }}>
+            The people who matter most to you<br/>deserve your full attention.
+          </h1>
+
+          <p style={{ fontSize: 15, lineHeight: 1.8, color: warm.muted, margin: "0 0 36px", fontFamily: "system-ui, sans-serif", fontStyle: "normal" }}>
+            We're building tools to help you save your mental bandwidth for them. One idea a week. Nothing more.
+          </p>
+
+          <div style={{ marginBottom: 8 }}>
+            <input
+              type="email"
+              value={emailInput}
+              onChange={e => { setEmailInput(e.target.value); setEmailError(""); }}
+              onKeyDown={e => e.key === "Enter" && !emailBusy && handleEmailSubmit()}
+              placeholder="your@email.com"
+              autoFocus
+              style={{
+                width: "100%", padding: "14px 18px", fontSize: 16,
+                border: `1.5px solid ${emailError ? "#DC2626" : warm.border}`,
+                borderRadius: 10, background: "#fff", color: warm.text,
+                fontFamily: "system-ui, sans-serif", outline: "none",
+                boxSizing: "border-box", transition: "border-color 0.2s",
+              }}
+              onFocus={e => e.target.style.borderColor = warm.accent}
+              onBlur={e => e.target.style.borderColor = emailError ? "#DC2626" : warm.border}
+            />
+          </div>
+
+          {emailError && (
+            <p style={{ fontSize: 13, color: "#DC2626", margin: "6px 0 0", fontFamily: "system-ui, sans-serif" }}>
+              {emailError}
+            </p>
+          )}
+
+          <button
+            onClick={handleEmailSubmit}
+            disabled={emailBusy}
+            style={{
+              width: "100%", marginTop: 12, padding: "14px",
+              background: emailBusy ? warm.border : warm.accent,
+              color: emailBusy ? warm.faint : "#fff",
+              border: "none", borderRadius: 10, fontSize: 15,
+              fontFamily: "system-ui, sans-serif", fontWeight: 600,
+              cursor: emailBusy ? "not-allowed" : "pointer",
+              transition: "all 0.2s", letterSpacing: 0.3,
+            }}
+          >
+            {emailBusy ? "one moment..." : "I'm in →"}
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <button
+              onClick={skip}
+              style={{ background: "none", border: "none", color: warm.faint, fontSize: 13, cursor: "pointer", fontFamily: "system-ui, sans-serif", textDecoration: "underline", textUnderlineOffset: 3 }}
+            >
+              explore first, no email needed
+            </button>
+          </div>
+
+          <p style={{ fontSize: 12, color: warm.faint, textAlign: "center", marginTop: 28, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}>
+            No spam. No selling. Unsubscribe any time.<br/>Your email is stored securely and never shared.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // ==================== LOADING ====================
   if (screen === "loading") return (

@@ -454,5 +454,11 @@
   </footer>
 
   <script src="script.js"></script>
+
+  <!-- Hidden form so Netlify detects and captures engine email signups -->
+  <form name="engine-capture" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="email" name="email" />
+    <input name="bot-field" />
+  </form>
 </body>
 </html>
