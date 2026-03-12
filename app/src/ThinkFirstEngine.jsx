@@ -16,6 +16,28 @@ const ABILITIES = [
 const RANK_TITLES = ["", "Initiate", "Apprentice", "Apprentice", "Journeyman", "Journeyman", "Adept", "Adept", "Master", "Master", "Legend"];
 
 // ============================================
+// WARM PALETTE — used for all pre-quest screens
+// (email gate, theme select, profile, zero session, hub)
+// Quest/intro screens use the narrative theme's palette.
+// Consistent with the landing page design tokens.
+// ============================================
+const W = {
+  bg:          "#FAF7F2",
+  bgCard:      "#F5F0E8",
+  bgInput:     "#FFFFFF",
+  border:      "#E7E2DA",
+  borderFocus: "#B45309",
+  text:        "#1C1917",
+  muted:       "#78716C",
+  faint:       "#A8A29E",
+  accent:      "#B45309",
+  accentSoft:  "#D97706",
+  accentLight: "#FEF3C7",
+  serif:       "'Fraunces', Georgia, serif",
+  sans:        "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+// ============================================
 // PHASE 2: OUTPUT CONTROL ABILITIES
 // ============================================
 const OUTPUT_ABILITIES = [
@@ -950,39 +972,45 @@ export default function ThinkFirstEngine() {
 
   // ==================== THEME SELECT ====================
   if (screen === "theme") return (
-    <div style={{ ...base, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28 }}>
-      <div style={{ width: "100%", maxWidth: 500 }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: nt.textMuted, textTransform: "uppercase", marginBottom: 16 }}>Choose your world</div>
-        <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: -2, margin: "0 0 8px", lineHeight: 1 }}>
-          Think<span style={{ color: nt.accent }}>First</span>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ width: "100%", maxWidth: 480 }}>
+        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28, fontFamily: W.sans }}>Think First</div>
+        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(2rem, 6vw, 2.6rem)", fontWeight: 600, lineHeight: 1.25, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
+          Choose how you want to learn.
         </h1>
-        <p style={{ color: nt.textMuted, fontSize: 14, margin: "0 0 28px", lineHeight: 1.7 }}>
-          Learn to think clearly — and every conversation with AI, with people, and with yourself gets better.
+        <p style={{ color: W.muted, fontSize: 15, margin: "0 0 32px", lineHeight: 1.8, fontFamily: W.sans }}>
+          Three different worlds. Same skills underneath. Pick the one that feels like yours.
         </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
           {Object.values(NARRATIVE_THEMES).map(t => (
             <button key={t.id} onClick={() => setTheme(t.id)} style={{
               padding: "18px 20px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-              border: `2px solid ${theme === t.id ? t.accent : t.border}`,
-              background: theme === t.id ? `${t.accent}15` : t.bgCard,
-              color: t.text, transition: "all 0.2s",
+              border: `2px solid ${theme === t.id ? W.accent : W.border}`,
+              background: theme === t.id ? W.accentLight : W.bgCard,
+              color: W.text, transition: "all 0.25s",
               display: "flex", gap: 16, alignItems: "center",
-            }}>
-              <span style={{ fontSize: 28, flexShrink: 0 }}>{t.emoji}</span>
+            }}
+              onMouseEnter={e => { if (theme !== t.id) e.currentTarget.style.borderColor = W.accentSoft; }}
+              onMouseLeave={e => { if (theme !== t.id) e.currentTarget.style.borderColor = W.border; }}
+            >
+              <span style={{ fontSize: 26, flexShrink: 0 }}>{t.emoji}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 3 }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: t.textMuted }}>{t.desc}</div>
+                <div style={{ fontFamily: W.serif, fontWeight: 600, fontSize: 16, marginBottom: 3, color: W.text }}>{t.name}</div>
+                <div style={{ fontSize: 13, color: W.muted, lineHeight: 1.5 }}>{t.desc}</div>
               </div>
-              {theme === t.id && <div style={{ color: t.accent, fontSize: 18, flexShrink: 0 }}>✓</div>}
+              {theme === t.id && <div style={{ color: W.accent, fontSize: 16, flexShrink: 0 }}>✓</div>}
             </button>
           ))}
         </div>
         <button onClick={() => setScreen("profile")} style={{
-          width: "100%", padding: "16px", borderRadius: 12, border: "none",
-          background: nt.accent, color: "#000", fontSize: 15, fontWeight: 800,
-          cursor: "pointer", letterSpacing: 0.5, fontFamily: "monospace",
-        }}>
-          CONTINUE →
+          width: "100%", padding: "15px", borderRadius: 12, border: "none",
+          background: W.accent, color: "#fff", fontSize: 15, fontWeight: 600,
+          cursor: "pointer", fontFamily: W.sans, letterSpacing: 0.3, transition: "background 0.2s",
+        }}
+          onMouseEnter={e => e.currentTarget.style.background = W.accentSoft}
+          onMouseLeave={e => e.currentTarget.style.background = W.accent}
+        >
+          Continue →
         </button>
       </div>
     </div>
@@ -990,41 +1018,45 @@ export default function ThinkFirstEngine() {
 
   // ==================== PROFILE ====================
   if (screen === "profile") return (
-    <div style={{ ...base, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28 }}>
-      <div style={{ width: "100%", maxWidth: 480 }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 4, color: nt.textMuted, textTransform: "uppercase", marginBottom: 20 }}>
-          {theme === "forest" ? "Who walks the path?" : theme === "studio" ? "Who are you?" : "A moment to begin."}
-        </div>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ width: "100%", maxWidth: 460 }}>
+        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 8 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
+        <h2 style={{ fontFamily: W.serif, fontWeight: 600, fontSize: "1.8rem", lineHeight: 1.3, margin: "0 0 28px", color: W.text, fontStyle: "italic" }}>
+          {theme === "forest" ? "Who walks the path?" : theme === "studio" ? "Who's in the studio?" : "A moment before we begin."}
+        </h2>
+
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: nt.textMuted, marginBottom: 8, fontFamily: "monospace", letterSpacing: 1 }}>YOUR NAME (optional)</div>
+          <div style={{ fontSize: 12, color: W.muted, marginBottom: 8, letterSpacing: 0.5 }}>Your name <span style={{ color: W.faint }}>(optional)</span></div>
           <input
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
-            placeholder={theme === "mirror" ? "What do you call yourself?" : "What should we call you?"}
-            style={{ width: "100%", padding: "13px 16px", borderRadius: 10, border: `2px solid ${nt.border}`, background: nt.bgInput, color: nt.text, fontSize: 15, outline: "none", boxSizing: "border-box" }}
-            onFocus={e => e.target.style.borderColor = nt.accent}
-            onBlur={e => e.target.style.borderColor = nt.border}
+            onKeyDown={e => e.key === "Enter" && chosenAge && document.getElementById("profile-continue")?.click()}
+            placeholder="What should we call you?"
+            style={{ width: "100%", padding: "13px 16px", borderRadius: 10, border: `1.5px solid ${W.border}`, background: W.bgInput, color: W.text, fontSize: 15, outline: "none", boxSizing: "border-box", fontFamily: W.sans, transition: "border-color 0.2s" }}
+            onFocus={e => e.target.style.borderColor = W.accent}
+            onBlur={e => e.target.style.borderColor = W.border}
           />
         </div>
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 11, color: nt.textMuted, marginBottom: 12, fontFamily: "monospace", letterSpacing: 1 }}>YOUR STAGE</div>
+
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 12, color: W.muted, marginBottom: 12, letterSpacing: 0.5 }}>Your stage</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {AGE_OPTIONS.map(ag => (
               <button key={ag.id} onClick={() => setChosenAge(ag.id)} style={{
                 padding: "16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
-                border: `2px solid ${chosenAge === ag.id ? nt.accent : nt.border}`,
-                background: chosenAge === ag.id ? `${nt.accent}18` : nt.bgCard,
-                color: nt.text, transition: "all 0.2s",
-                transform: chosenAge === ag.id ? "scale(1.03)" : "scale(1)",
+                border: `2px solid ${chosenAge === ag.id ? W.accent : W.border}`,
+                background: chosenAge === ag.id ? W.accentLight : W.bgCard,
+                color: W.text, transition: "all 0.2s",
               }}>
-                <div style={{ fontSize: 24, marginBottom: 6 }}>{ag.emoji}</div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{ag.label}</div>
-                <div style={{ fontSize: 11, color: nt.textMuted, marginTop: 2 }}>Ages {ag.ages}</div>
+                <div style={{ fontSize: 22, marginBottom: 6 }}>{ag.emoji}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontFamily: W.sans }}>{ag.label}</div>
+                <div style={{ fontSize: 12, color: W.muted, marginTop: 2 }}>{ag.ages}</div>
               </button>
             ))}
           </div>
         </div>
-        <button disabled={!chosenAge} onClick={() => {
+
+        <button id="profile-continue" disabled={!chosenAge} onClick={() => {
           setUserName(nameInput.trim());
           setAgeGroup(chosenAge);
           setZeroPairIdx(0);
@@ -1032,13 +1064,13 @@ export default function ThinkFirstEngine() {
           setZeroChosen(null);
           setScreen("zero");
         }} style={{
-          width: "100%", padding: "16px", borderRadius: 12, border: "none",
-          background: chosenAge ? nt.accent : nt.border,
-          color: chosenAge ? "#000" : nt.textFaint,
-          fontSize: 15, fontWeight: 800, cursor: chosenAge ? "pointer" : "not-allowed",
-          letterSpacing: 0.5, fontFamily: "monospace",
+          width: "100%", padding: "15px", borderRadius: 12, border: "none",
+          background: chosenAge ? W.accent : W.border,
+          color: chosenAge ? "#fff" : W.faint,
+          fontSize: 15, fontWeight: 600, cursor: chosenAge ? "pointer" : "not-allowed",
+          fontFamily: W.sans, transition: "all 0.2s",
         }}>
-          {theme === "forest" ? "ENTER THE FOREST →" : theme === "studio" ? "OPEN THE STUDIO →" : "BEGIN →"}
+          {theme === "forest" ? "Enter the forest →" : theme === "studio" ? "Open the studio →" : "Begin →"}
         </button>
       </div>
     </div>
@@ -1055,31 +1087,31 @@ export default function ThinkFirstEngine() {
     const ability = ABILITIES.find(a => a.id === pair.abilityId);
 
     return (
-      <div style={{ ...base, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28 }}>
-        <div style={{ width: "100%", maxWidth: 520 }}>
-          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 20 }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+        <div style={{ width: "100%", maxWidth: 540 }}>
+          <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28 }}>
             {theme === "forest" ? "The path begins here" : theme === "studio" ? "First, a calibration" : "Let's find where you are"}
           </div>
 
           {zeroPhase === "question" && (
             <>
-              <p style={{ fontSize: 17, lineHeight: 1.75, color: nt.text, marginBottom: 28 }}>{q}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <p style={{ fontFamily: W.serif, fontSize: "clamp(1.2rem, 3vw, 1.4rem)", lineHeight: 1.7, color: W.text, marginBottom: 32, fontStyle: "italic", fontWeight: 400 }}>{q}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
                   <button key={opt.key} onClick={() => handleZeroChoice(opt.key)} style={{
                     padding: "20px 24px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-                    border: `2px solid ${nt.border}`, background: nt.bgCard, color: nt.text,
-                    fontSize: 15, lineHeight: 1.6, transition: "all 0.15s",
+                    border: `1.5px solid ${W.border}`, background: W.bgCard, color: W.text,
+                    fontSize: 14, lineHeight: 1.7, transition: "all 0.25s", whiteSpace: "pre-wrap",
                   }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = nt.accent; e.currentTarget.style.background = `${nt.accent}10`; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = nt.border; e.currentTarget.style.background = nt.bgCard; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = W.accent; e.currentTarget.style.background = W.accentLight; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = W.border; e.currentTarget.style.background = W.bgCard; }}
                   >
-                    <span style={{ fontFamily: "monospace", fontSize: 11, color: nt.textMuted, display: "block", marginBottom: 6 }}>OPTION {opt.key.toUpperCase()}</span>
-                    "{opt.text}"
+                    <span style={{ fontSize: 11, color: W.faint, display: "block", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>Option {opt.key.toUpperCase()}</span>
+                    {opt.text}
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: 12, color: nt.textFaint, marginTop: 20, textAlign: "center", fontFamily: "monospace" }}>
+              <p style={{ fontSize: 13, color: W.faint, marginTop: 24, textAlign: "center", lineHeight: 1.6 }}>
                 No right or wrong — just notice which one feels different.
               </p>
             </>
@@ -1087,43 +1119,45 @@ export default function ThinkFirstEngine() {
 
           {zeroPhase === "insight" && (
             <div style={{ animation: "fadeUp 0.4s ease" }}>
-              <div style={{ marginBottom: 20, display: "flex", gap: 14 }}>
+              <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
                 {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
                   <div key={opt.key} style={{
-                    flex: 1, padding: "16px 18px", borderRadius: 12, fontSize: 14, lineHeight: 1.5,
-                    border: `2px solid ${opt.key === "b" ? nt.accent : nt.border}`,
-                    background: opt.key === "b" ? `${nt.accent}15` : nt.bgCard,
-                    color: opt.key === "b" ? nt.text : nt.textMuted,
-                    opacity: opt.key === "a" ? 0.5 : 1,
+                    flex: 1, padding: "16px 18px", borderRadius: 12, fontSize: 13, lineHeight: 1.65,
+                    border: `2px solid ${opt.key === "b" ? W.accent : W.border}`,
+                    background: opt.key === "b" ? W.accentLight : W.bgCard,
+                    color: opt.key === "b" ? W.text : W.muted,
+                    opacity: opt.key === "a" ? 0.6 : 1, whiteSpace: "pre-wrap",
+                    transition: "all 0.3s",
                   }}>
-                    <div style={{ fontSize: 10, fontFamily: "monospace", marginBottom: 6, color: opt.key === "b" ? nt.accent : nt.textFaint }}>
-                      {opt.key === "b" ? "✓ THIS ONE" : "✗ TOO VAGUE"}
+                    <div style={{ fontSize: 10, marginBottom: 8, color: opt.key === "b" ? W.accent : W.faint, letterSpacing: 1, textTransform: "uppercase" }}>
+                      {opt.key === "b" ? "✓ This one" : "✗ Too vague"}
                     </div>
-                    "{opt.text}"
+                    {opt.text}
                   </div>
                 ))}
               </div>
 
-              <div style={{ padding: "20px 22px", borderRadius: 14, background: nt.bgCard, border: `1px solid ${nt.border}`, marginBottom: 24 }}>
-                <div style={{ fontSize: 10, letterSpacing: 2, color: nt.accent, fontFamily: "monospace", marginBottom: 10, textTransform: "uppercase" }}>{nt.axisName}</div>
-                <p style={{ fontSize: 15, lineHeight: 1.75, color: nt.text, margin: 0 }}>{insight}</p>
+              <div style={{ padding: "22px 24px", borderRadius: 14, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 24 }}>
+                <div style={{ fontSize: 11, letterSpacing: 2, color: W.accent, marginBottom: 12, textTransform: "uppercase" }}>{nt.axisName}</div>
+                <p style={{ fontFamily: W.serif, fontSize: "1.05rem", lineHeight: 1.8, color: W.text, margin: 0, fontStyle: "italic" }}>{insight}</p>
               </div>
 
-              {choiceCorrect
-                ? <p style={{ fontSize: 14, color: nt.accentSoft, marginBottom: 20, lineHeight: 1.6 }}>
-                    {theme === "forest" ? "You felt it. That instinct will guide you." : theme === "studio" ? "Good eye. That's the beginning of craft." : "You already had that sense. We're just making it louder."}
-                  </p>
-                : <p style={{ fontSize: 14, color: nt.textMuted, marginBottom: 20, lineHeight: 1.6 }}>
-                    That's exactly where most people start. The difference becomes clearer with practice — and you just took the first step.
-                  </p>
-              }
+              <p style={{ fontSize: 14, color: choiceCorrect ? W.accent : W.muted, marginBottom: 24, lineHeight: 1.7 }}>
+                {choiceCorrect
+                  ? (theme === "forest" ? "You felt it. That instinct will guide you." : theme === "studio" ? "Good eye. That's the beginning of craft." : "You already had that sense. We're just making it louder.")
+                  : "That's exactly where most people start. The difference becomes clearer with practice — and you just took the first step."
+                }
+              </p>
 
               <button onClick={nextZeroPair} style={{
                 width: "100%", padding: "15px", borderRadius: 12, border: "none",
-                background: nt.accent, color: "#000", fontSize: 14, fontWeight: 800,
-                cursor: "pointer", fontFamily: "monospace",
-              }}>
-                {zeroPairIdx < ZERO_PAIRS.length - 1 ? "ONE MORE →" : "BEGIN →"}
+                background: W.accent, color: "#fff", fontSize: 15, fontWeight: 600,
+                cursor: "pointer", fontFamily: W.sans, transition: "background 0.2s",
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = W.accentSoft}
+                onMouseLeave={e => e.currentTarget.style.background = W.accent}
+              >
+                {zeroPairIdx < ZERO_PAIRS.length - 1 ? "One more →" : "Let's begin →"}
               </button>
             </div>
           )}
