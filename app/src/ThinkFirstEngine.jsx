@@ -923,13 +923,13 @@ export default function ThinkFirstEngine() {
 
     return (
       <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
-        <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ width: "100%", maxWidth: 440 }}>
 
           <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
             Think First
           </div>
 
-          <h1 style={{ fontFamily: W.serif, fontSize: 26, fontWeight: 600, lineHeight: 1.5, margin: "0 0 16px", color: W.text, fontStyle: "italic" }}>
+          <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 400, lineHeight: 1.35, margin: "0 0 16px", color: W.text, fontStyle: "italic" }}>
             The people who matter most to you<br/>deserve your full attention.
           </h1>
 
@@ -1006,9 +1006,9 @@ export default function ThinkFirstEngine() {
   // ==================== THEME SELECT ====================
   if (screen === "theme") return (
     <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
-      <div style={{ width: "100%", maxWidth: 480 }}>
-        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28, fontFamily: W.sans }}>Think First</div>
-        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 600, lineHeight: 1.3, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
+      <div style={{ width: "100%", maxWidth: 440 }}>
+        <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First</div>
+        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 400, lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
           Where does your mind feel at home?
         </h1>
         <p style={{ color: W.muted, fontSize: 15, margin: "0 0 32px", lineHeight: 1.8, fontFamily: W.sans }}>
@@ -1017,8 +1017,8 @@ export default function ThinkFirstEngine() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
           {Object.values(NARRATIVE_THEMES).map(t => (
             <button key={t.id} onClick={() => setTheme(t.id)} style={{
-              padding: "18px 20px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-              border: `2px solid ${theme === t.id ? W.accent : W.border}`,
+              padding: "16px 18px", borderRadius: 8, cursor: "pointer", textAlign: "left",
+              border: `1px solid ${theme === t.id ? W.accent : W.border}`,
               background: theme === t.id ? W.accentLight : W.bgCard,
               color: W.text, transition: "all 0.25s",
               display: "flex", gap: 16, alignItems: "center",
@@ -1052,9 +1052,9 @@ export default function ThinkFirstEngine() {
   // ==================== PROFILE ====================
   if (screen === "profile") return (
     <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
-      <div style={{ width: "100%", maxWidth: 460 }}>
-        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 16 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
-        <h2 style={{ fontFamily: W.serif, fontWeight: 600, fontSize: "1.6rem", lineHeight: 1.35, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
+      <div style={{ width: "100%", maxWidth: 440 }}>
+        <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
+        <h2 style={{ fontFamily: W.serif, fontWeight: 400, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
           Before we begin, a quick question.
         </h2>
         <div style={{ padding: "16px 18px", borderRadius: 10, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 24 }}>
@@ -1128,8 +1128,8 @@ export default function ThinkFirstEngine() {
 
     return (
       <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
-        <div style={{ width: "100%", maxWidth: 540 }}>
-          <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28 }}>
+        <div style={{ width: "100%", maxWidth: 440 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
             {zeroPairIdx === 0 ? "Before we start" : zeroPairIdx === 1 ? "One more" : "Last one"}
           </div>
 
@@ -1157,7 +1157,7 @@ export default function ThinkFirstEngine() {
           )}
 
           {zeroPhase === "insight" && (
-            <div style={{ animation: "fadeUp 0.4s ease" }}>
+            <div style={{ animation: "fadeUp 0.4s ease", maxWidth: 560, margin: "0 auto" }}>
               <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
                 {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
                   <div key={opt.key} style={{
