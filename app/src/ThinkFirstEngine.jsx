@@ -698,12 +698,29 @@ export default function ThinkFirstEngine() {
   useEffect(() => {
     const s = document.createElement("style");
     s.textContent = `
-      @keyframes screenFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes darkReveal { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeUp { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes darkReveal { 0% { opacity: 0.6; } 100% { opacity: 0; } }
+      }
     `;
     document.head.appendChild(s);
     return () => document.head.removeChild(s);
   }, []);
+
+  // Dark crossfade on every screen change — fades from warm dark to transparent
+  // so transitions feel like a breath rather than a flash
+  useEffect(() => {
+    if (screen === "loading") return;
+    const el = document.createElement("div");
+    el.style.cssText = "position:fixed;inset:0;background:#1C1510;z-index:9999;pointer-events:none;animation:darkReveal 0.65s ease forwards";
+    document.body.appendChild(el);
+    const t = setTimeout(() => { if (el.parentNode) el.remove(); }, 680);
+    return () => { clearTimeout(t); if (el.parentNode) el.remove(); };
+  }, [screen]);
 
   useEffect(() => {
     const saved = loadState();
@@ -922,7 +939,7 @@ export default function ThinkFirstEngine() {
     };
 
     return (
-      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
 
           <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
@@ -1005,7 +1022,7 @@ export default function ThinkFirstEngine() {
 
   // ==================== THEME SELECT ====================
   if (screen === "theme") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{ width: "100%", maxWidth: 440 }}>
         <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First</div>
         <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 400, lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
@@ -1051,7 +1068,7 @@ export default function ThinkFirstEngine() {
 
   // ==================== PROFILE ====================
   if (screen === "profile") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{ width: "100%", maxWidth: 440 }}>
         <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
         <h2 style={{ fontFamily: W.serif, fontWeight: 400, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", lineHeight: 1.35, margin: "0 0 14px", color: W.text, fontStyle: "italic" }}>
@@ -1127,7 +1144,7 @@ export default function ThinkFirstEngine() {
     const ability = ABILITIES.find(a => a.id === pair.abilityId);
 
     return (
-      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
             {zeroPairIdx === 0 ? "Before we start" : zeroPairIdx === 1 ? "One more" : "Last one"}
