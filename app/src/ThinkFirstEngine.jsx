@@ -22,17 +22,17 @@ const RANK_TITLES = ["", "Initiate", "Apprentice", "Apprentice", "Journeyman", "
 // Consistent with the landing page design tokens.
 // ============================================
 const W = {
-  bg:          "#FAF7F2",
-  bgCard:      "#F5F0E8",
-  bgInput:     "#FFFFFF",
-  border:      "#E7E2DA",
-  borderFocus: "#B45309",
-  text:        "#1C1917",
-  muted:       "#78716C",
-  faint:       "#A8A29E",
-  accent:      "#B45309",
-  accentSoft:  "#D97706",
-  accentLight: "#FEF3C7",
+  bg:          "#FAF8F4",
+  bgCard:      "#F2EDE6",
+  bgInput:     "#FDFBF8",
+  border:      "#E5DFD6",
+  borderFocus: "#8C7355",
+  text:        "#2A2420",
+  muted:       "#7A6E68",
+  faint:       "#B0A89E",
+  accent:      "#8C7355",
+  accentSoft:  "#A08870",
+  accentLight: "#F5EFE6",
   serif:       "'Fraunces', Georgia, serif",
   sans:        "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -57,17 +57,16 @@ const NARRATIVE_THEMES = {
     emoji: "🌲",
     tagline: "Ancient paths. The Voice responds only to clarity.",
     desc: "A fairytale world where structured thought clears the way forward.",
-    // Colours
-    bg: "#0A1A0A",
-    bgCard: "#111F11",
-    bgInput: "#0D180D",
-    border: "#1A3A1A",
-    text: "#D4EDD4",
-    textMuted: "#5A8F5A",
-    textFaint: "#2A4A2A",
-    accent: "#4ADE80",
-    accentSoft: "#86EFAC",
-    gradient: "radial-gradient(ellipse at 15% 25%, #0E2A0E 0%, #0A1A0A 65%)",
+    // Colours — light sage
+    bg: "#F2F7EF",
+    bgCard: "#E8F0E4",
+    bgInput: "#FAFCF9",
+    border: "#C4D8BC",
+    text: "#1C2E1A",
+    textMuted: "#4D6F48",
+    textFaint: "#8FAD89",
+    accent: "#3A7034",
+    accentSoft: "#5A9054",
     // Narrative voice
     axisName: "The Voice",
     axisIntro: [
@@ -98,16 +97,16 @@ const NARRATIVE_THEMES = {
     emoji: "◻",
     tagline: "Clean thinking. Sharp craft. No noise.",
     desc: "A modern workspace where clarity of thought is the only tool that matters.",
-    bg: "#0F0F0F",
-    bgCard: "#161616",
-    bgInput: "#111111",
-    border: "#2A2A2A",
-    text: "#E8E8E8",
-    textMuted: "#666666",
-    textFaint: "#333333",
-    accent: "#C0C0C0",
-    accentSoft: "#E0E0E0",
-    gradient: "radial-gradient(ellipse at 50% 0%, #1A1A1A 0%, #0F0F0F 60%)",
+    // Colours — light warm grey
+    bg: "#F5F5F2",
+    bgCard: "#EEEEED",
+    bgInput: "#FAFAF9",
+    border: "#D5D5CE",
+    text: "#1A1A18",
+    textMuted: "#636360",
+    textFaint: "#9A9A96",
+    accent: "#4A4A46",
+    accentSoft: "#6A6A66",
     axisName: "AXIS",
     axisIntro: [
       "This is the studio.",
@@ -137,16 +136,16 @@ const NARRATIVE_THEMES = {
     emoji: "🌀",
     tagline: "Look inward. Think clearly. Speak kindly.",
     desc: "A reflective space where structured thought becomes a form of self-understanding.",
-    bg: "#0A0A12",
-    bgCard: "#111120",
-    bgInput: "#0D0D1A",
-    border: "#1E1E35",
-    text: "#DDD8FF",
-    textMuted: "#6A6490",
-    textFaint: "#2A2840",
-    accent: "#A78BFA",
-    accentSoft: "#C4B5FD",
-    gradient: "radial-gradient(ellipse at 60% 30%, #16143A 0%, #0A0A12 65%)",
+    // Colours — soft lavender
+    bg: "#F4F2FA",
+    bgCard: "#EBE8F5",
+    bgInput: "#FAF9FD",
+    border: "#C8C0E8",
+    text: "#1A1830",
+    textMuted: "#5E5880",
+    textFaint: "#9890C0",
+    accent: "#6048B8",
+    accentSoft: "#7A60CC",
     axisName: "the mirror",
     axisIntro: [
       "You already know how to think.",
@@ -583,12 +582,31 @@ const AssemblyBuilder = ({ parts, onSend, nt }) => {
   );
 };
 
-// Free text input with optional hint bubbles
+// Lightweight heuristic prompt assessor — client-side, no API call
+function assessPrompt(val) {
+  const trimmed = val.trim();
+  if (trimmed.length < 25) return null;
+  const words = trimmed.split(/\s+/);
+  if (words.length < 5) return { type: "weak", msg: "Try adding what you want back and why it matters." };
+  const hasVerb = /\b(list|show|explain|summarise|summarize|write|give|create|tell|describe|compare|analyse|analyze|format|structure|find|help|suggest|identify|outline|draft)\b/i.test(trimmed);
+  const hasContext = trimmed.length > 70 || /\b(because|so that|in order to|for|my|our|the|this|that)\b/i.test(trimmed);
+  const isQuestion = trimmed.endsWith("?");
+  if (!hasVerb && !isQuestion) return { type: "hint", msg: "What should come back? A list? An explanation? A decision?" };
+  if (hasVerb && !hasContext) return { type: "hint", msg: "A little context will sharpen what comes back." };
+  return { type: "good", msg: "Clear and specific — good to send." };
+}
+
+const CHAR_LIMIT = 500;
+
+// Free text input with optional hint bubbles and prompt assessor
 const FreeInput = ({ onSend, nt, ability, showHints, hints }) => {
   const [val, setVal] = useState("");
   const [showH, setShowH] = useState(false);
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
+  const assessment = assessPrompt(val);
+  const assessColor = assessment?.type === "good" ? nt.accent : assessment?.type === "weak" ? "#B45309" : nt.textFaint;
+  const canSend = val.trim().length > 0 && val.length <= CHAR_LIMIT;
   return (
     <div style={{ padding: "10px 20px 20px", borderTop: `1px solid ${nt.border}`, background: nt.bgCard }}>
       {showHints && showH && hints && (
@@ -600,26 +618,36 @@ const FreeInput = ({ onSend, nt, ability, showHints, hints }) => {
           ))}
         </div>
       )}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
         {showHints && (
-          <button onClick={() => setShowH(v => !v)} style={{ padding: "11px 14px", borderRadius: 10, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textMuted, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
+          <button onClick={() => setShowH(v => !v)} style={{ padding: "11px 14px", borderRadius: 10, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textMuted, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", marginBottom: 2 }}>
             {showH ? "hide hints" : "hints"}
           </button>
         )}
-        <input
-          ref={ref}
-          value={val}
-          onChange={e => setVal(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && val.trim() && onSend(val.trim())}
-          placeholder="Your response..."
-          style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: `2px solid ${nt.border}`, background: nt.bgInput, color: nt.text, fontSize: 15, outline: "none" }}
-          onFocus={e => e.target.style.borderColor = ability?.color || nt.accent}
-          onBlur={e => e.target.style.borderColor = nt.border}
-        />
+        <div style={{ flex: 1 }}>
+          <input
+            ref={ref}
+            value={val}
+            onChange={e => setVal(e.target.value.slice(0, CHAR_LIMIT))}
+            onKeyDown={e => e.key === "Enter" && canSend && onSend(val.trim())}
+            placeholder="Your response..."
+            style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `2px solid ${nt.border}`, background: nt.bgInput, color: nt.text, fontSize: 15, outline: "none", boxSizing: "border-box" }}
+            onFocus={e => e.target.style.borderColor = ability?.color || nt.accent}
+            onBlur={e => e.target.style.borderColor = nt.border}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, minHeight: 16 }}>
+            <span style={{ fontSize: 11, color: assessColor, fontStyle: "italic", transition: "color 0.3s" }}>
+              {assessment?.msg || ""}
+            </span>
+            <span style={{ fontSize: 11, color: val.length > CHAR_LIMIT * 0.85 ? (val.length >= CHAR_LIMIT ? "#DC2626" : "#B45309") : nt.textFaint, fontVariantNumeric: "tabular-nums" }}>
+              {val.length}/{CHAR_LIMIT}
+            </span>
+          </div>
+        </div>
         <button
-          onClick={() => val.trim() && onSend(val.trim())}
-          disabled={!val.trim()}
-          style={{ padding: "12px 22px", borderRadius: 10, border: "none", background: val.trim() ? (ability?.color || nt.accent) : nt.border, color: val.trim() ? "#000" : nt.textFaint, fontSize: 17, fontWeight: 800, cursor: val.trim() ? "pointer" : "not-allowed" }}
+          onClick={() => canSend && onSend(val.trim())}
+          disabled={!canSend}
+          style={{ padding: "12px 22px", borderRadius: 10, border: "none", background: canSend ? (ability?.color || nt.accent) : nt.border, color: canSend ? "#000" : nt.textFaint, fontSize: 17, fontWeight: 700, cursor: canSend ? "pointer" : "not-allowed", marginBottom: 22 }}
         >
           →
         </button>
@@ -665,6 +693,17 @@ export default function ThinkFirstEngine() {
   const nt = NARRATIVE_THEMES[theme];
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  // Inject global keyframes once
+  useEffect(() => {
+    const s = document.createElement("style");
+    s.textContent = `
+      @keyframes screenFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    `;
+    document.head.appendChild(s);
+    return () => document.head.removeChild(s);
+  }, []);
 
   useEffect(() => {
     const saved = loadState();
@@ -882,25 +921,19 @@ export default function ThinkFirstEngine() {
       setScreen("theme");
     };
 
-    const warm = {
-      bg: "#FAF7F2", text: "#1C1917", muted: "#78716C",
-      faint: "#A8A29E", border: "#E7E2DA", accent: "#B45309",
-      accentSoft: "#D97706", card: "#F5F0E8",
-    };
-
     return (
-      <div style={{ minHeight: "100vh", background: warm.bg, color: warm.text, fontFamily: "'Georgia', 'Times New Roman', serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
+        <div style={{ width: "100%", maxWidth: 420 }}>
 
-          <div style={{ fontFamily: "system-ui, sans-serif", fontSize: 10, letterSpacing: 4, color: warm.faint, textTransform: "uppercase", marginBottom: 32 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
             Think First
           </div>
 
-          <h1 style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.4, margin: "0 0 16px", color: warm.text, fontStyle: "italic" }}>
+          <h1 style={{ fontFamily: W.serif, fontSize: 26, fontWeight: 600, lineHeight: 1.5, margin: "0 0 16px", color: W.text, fontStyle: "italic" }}>
             The people who matter most to you<br/>deserve your full attention.
           </h1>
 
-          <p style={{ fontSize: 15, lineHeight: 1.8, color: warm.muted, margin: "0 0 36px", fontFamily: "system-ui, sans-serif", fontStyle: "normal" }}>
+          <p style={{ fontSize: 15, lineHeight: 1.8, color: W.muted, margin: "0 0 32px" }}>
             We're building tools to help you save your mental bandwidth for them. One idea a week. Nothing more.
           </p>
 
@@ -913,19 +946,19 @@ export default function ThinkFirstEngine() {
               placeholder="your@email.com"
               autoFocus
               style={{
-                width: "100%", padding: "14px 18px", fontSize: 16,
-                border: `1.5px solid ${emailError ? "#DC2626" : warm.border}`,
-                borderRadius: 10, background: "#fff", color: warm.text,
-                fontFamily: "system-ui, sans-serif", outline: "none",
+                width: "100%", padding: "12px 16px", fontSize: 15,
+                border: `1px solid ${emailError ? "#DC2626" : W.border}`,
+                borderRadius: 8, background: W.bgInput, color: W.text,
+                fontFamily: W.sans, outline: "none",
                 boxSizing: "border-box", transition: "border-color 0.2s",
               }}
-              onFocus={e => e.target.style.borderColor = warm.accent}
-              onBlur={e => e.target.style.borderColor = emailError ? "#DC2626" : warm.border}
+              onFocus={e => e.target.style.borderColor = W.borderFocus}
+              onBlur={e => e.target.style.borderColor = emailError ? "#DC2626" : W.border}
             />
           </div>
 
           {emailError && (
-            <p style={{ fontSize: 13, color: "#DC2626", margin: "6px 0 0", fontFamily: "system-ui, sans-serif" }}>
+            <p style={{ fontSize: 13, color: "#DC2626", margin: "6px 0 0" }}>
               {emailError}
             </p>
           )}
@@ -934,11 +967,11 @@ export default function ThinkFirstEngine() {
             onClick={handleEmailSubmit}
             disabled={emailBusy}
             style={{
-              width: "100%", marginTop: 12, padding: "14px",
-              background: emailBusy ? warm.border : warm.accent,
-              color: emailBusy ? warm.faint : "#fff",
-              border: "none", borderRadius: 10, fontSize: 15,
-              fontFamily: "system-ui, sans-serif", fontWeight: 600,
+              width: "100%", marginTop: 10, padding: "12px",
+              background: emailBusy ? W.border : W.text,
+              color: emailBusy ? W.faint : W.bg,
+              border: "none", borderRadius: 8, fontSize: 14,
+              fontFamily: W.sans, fontWeight: 600,
               cursor: emailBusy ? "not-allowed" : "pointer",
               transition: "all 0.2s", letterSpacing: 0.3,
             }}
@@ -946,16 +979,16 @@ export default function ThinkFirstEngine() {
             {emailBusy ? "one moment..." : "I'm in →"}
           </button>
 
-          <div style={{ textAlign: "center", marginTop: 20 }}>
+          <div style={{ textAlign: "center", marginTop: 16 }}>
             <button
               onClick={skip}
-              style={{ background: "none", border: "none", color: warm.faint, fontSize: 13, cursor: "pointer", fontFamily: "system-ui, sans-serif", textDecoration: "underline", textUnderlineOffset: 3 }}
+              style={{ background: "none", border: "none", color: W.faint, fontSize: 13, cursor: "pointer", fontFamily: W.sans, textDecoration: "underline", textUnderlineOffset: 3 }}
             >
               explore first, no email needed
             </button>
           </div>
 
-          <p style={{ fontSize: 12, color: warm.faint, textAlign: "center", marginTop: 28, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}>
+          <p style={{ fontSize: 12, color: W.faint, textAlign: "center", marginTop: 28, lineHeight: 1.7 }}>
             No spam. No selling. Unsubscribe any time.<br/>Your email is stored securely and never shared.
           </p>
         </div>
@@ -972,14 +1005,14 @@ export default function ThinkFirstEngine() {
 
   // ==================== THEME SELECT ====================
   if (screen === "theme") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
       <div style={{ width: "100%", maxWidth: 480 }}>
         <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28, fontFamily: W.sans }}>Think First</div>
-        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(2rem, 6vw, 2.6rem)", fontWeight: 600, lineHeight: 1.25, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
-          Choose how you want to learn.
+        <h1 style={{ fontFamily: W.serif, fontSize: "clamp(1.8rem, 5vw, 2.4rem)", fontWeight: 600, lineHeight: 1.3, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
+          Where does your mind feel at home?
         </h1>
         <p style={{ color: W.muted, fontSize: 15, margin: "0 0 32px", lineHeight: 1.8, fontFamily: W.sans }}>
-          Three different worlds. Same skills underneath. Pick the one that feels like yours.
+          Same skills, three different contexts. Pick whichever fits how you think today — you can always change it.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
           {Object.values(NARRATIVE_THEMES).map(t => (
@@ -1003,12 +1036,12 @@ export default function ThinkFirstEngine() {
           ))}
         </div>
         <button onClick={() => setScreen("profile")} style={{
-          width: "100%", padding: "15px", borderRadius: 12, border: "none",
-          background: W.accent, color: "#fff", fontSize: 15, fontWeight: 600,
-          cursor: "pointer", fontFamily: W.sans, letterSpacing: 0.3, transition: "background 0.2s",
+          width: "100%", padding: "13px", borderRadius: 8, border: "none",
+          background: W.text, color: W.bg, fontSize: 14, fontWeight: 600,
+          cursor: "pointer", fontFamily: W.sans, letterSpacing: 0.3, transition: "opacity 0.2s",
         }}
-          onMouseEnter={e => e.currentTarget.style.background = W.accentSoft}
-          onMouseLeave={e => e.currentTarget.style.background = W.accent}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
           Continue →
         </button>
@@ -1018,12 +1051,19 @@ export default function ThinkFirstEngine() {
 
   // ==================== PROFILE ====================
   if (screen === "profile") return (
-    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+    <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
       <div style={{ width: "100%", maxWidth: 460 }}>
-        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 8 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
-        <h2 style={{ fontFamily: W.serif, fontWeight: 600, fontSize: "1.8rem", lineHeight: 1.3, margin: "0 0 28px", color: W.text, fontStyle: "italic" }}>
-          {theme === "forest" ? "Who walks the path?" : theme === "studio" ? "Who's in the studio?" : "A moment before we begin."}
+        <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 16 }}>Think First · {NARRATIVE_THEMES[theme].name}</div>
+        <h2 style={{ fontFamily: W.serif, fontWeight: 600, fontSize: "1.6rem", lineHeight: 1.35, margin: "0 0 12px", color: W.text, fontStyle: "italic" }}>
+          Before we begin, a quick question.
         </h2>
+        <div style={{ padding: "16px 18px", borderRadius: 10, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 24 }}>
+          <p style={{ fontSize: 13, lineHeight: 1.8, color: W.muted, margin: 0 }}>
+            Your brain fills in gaps, reads tone, and makes intuitive leaps.<br/>
+            A machine does exactly what you tell it — no more, no less.<br/>
+            <span style={{ color: W.text }}>These skills are how you bridge that gap — and still stay human.</span>
+          </p>
+        </div>
 
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 12, color: W.muted, marginBottom: 8, letterSpacing: 0.5 }}>Your name <span style={{ color: W.faint }}>(optional)</span></div>
@@ -1064,10 +1104,10 @@ export default function ThinkFirstEngine() {
           setZeroChosen(null);
           setScreen("zero");
         }} style={{
-          width: "100%", padding: "15px", borderRadius: 12, border: "none",
-          background: chosenAge ? W.accent : W.border,
-          color: chosenAge ? "#fff" : W.faint,
-          fontSize: 15, fontWeight: 600, cursor: chosenAge ? "pointer" : "not-allowed",
+          width: "100%", padding: "13px", borderRadius: 8, border: "none",
+          background: chosenAge ? W.text : W.border,
+          color: chosenAge ? W.bg : W.faint,
+          fontSize: 14, fontWeight: 600, cursor: chosenAge ? "pointer" : "not-allowed",
           fontFamily: W.sans, transition: "all 0.2s",
         }}>
           {theme === "forest" ? "Enter the forest →" : theme === "studio" ? "Open the studio →" : "Begin →"}
@@ -1087,32 +1127,31 @@ export default function ThinkFirstEngine() {
     const ability = ABILITIES.find(a => a.id === pair.abilityId);
 
     return (
-      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.4s ease" }}>
         <div style={{ width: "100%", maxWidth: 540 }}>
           <div style={{ fontSize: 11, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 28 }}>
-            {theme === "forest" ? "The path begins here" : theme === "studio" ? "First, a calibration" : "Let's find where you are"}
+            {zeroPairIdx === 0 ? "Before we start" : zeroPairIdx === 1 ? "One more" : "Last one"}
           </div>
 
           {zeroPhase === "question" && (
             <>
-              <p style={{ fontFamily: W.serif, fontSize: "clamp(1.2rem, 3vw, 1.4rem)", lineHeight: 1.7, color: W.text, marginBottom: 32, fontStyle: "italic", fontWeight: 400 }}>{q}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <p style={{ fontFamily: W.serif, fontSize: "clamp(1.2rem, 3vw, 1.4rem)", lineHeight: 1.75, color: W.text, marginBottom: 32, fontStyle: "italic", fontWeight: 400 }}>{q}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
                   <button key={opt.key} onClick={() => handleZeroChoice(opt.key)} style={{
-                    padding: "20px 24px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-                    border: `1.5px solid ${W.border}`, background: W.bgCard, color: W.text,
-                    fontSize: 14, lineHeight: 1.7, transition: "all 0.25s", whiteSpace: "pre-wrap",
+                    padding: "20px 24px", borderRadius: 12, cursor: "pointer", textAlign: "left",
+                    border: `1px solid ${W.border}`, background: W.bgCard, color: W.text,
+                    fontSize: 14, lineHeight: 1.75, transition: "all 0.2s", whiteSpace: "pre-wrap",
                   }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = W.accent; e.currentTarget.style.background = W.accentLight; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = W.border; e.currentTarget.style.background = W.bgCard; }}
                   >
-                    <span style={{ fontSize: 11, color: W.faint, display: "block", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>Option {opt.key.toUpperCase()}</span>
                     {opt.text}
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: 13, color: W.faint, marginTop: 24, textAlign: "center", lineHeight: 1.6 }}>
-                No right or wrong — just notice which one feels different.
+              <p style={{ fontSize: 13, color: W.faint, marginTop: 20, textAlign: "center", lineHeight: 1.6 }}>
+                Just notice which one feels clearer — there's no wrong pick.
               </p>
             </>
           )}
@@ -1122,15 +1161,15 @@ export default function ThinkFirstEngine() {
               <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
                 {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
                   <div key={opt.key} style={{
-                    flex: 1, padding: "16px 18px", borderRadius: 12, fontSize: 13, lineHeight: 1.65,
-                    border: `2px solid ${opt.key === "b" ? W.accent : W.border}`,
+                    flex: 1, padding: "16px 18px", borderRadius: 12, fontSize: 13, lineHeight: 1.7,
+                    border: `1px solid ${opt.key === "b" ? W.accent : W.border}`,
                     background: opt.key === "b" ? W.accentLight : W.bgCard,
                     color: opt.key === "b" ? W.text : W.muted,
-                    opacity: opt.key === "a" ? 0.6 : 1, whiteSpace: "pre-wrap",
+                    opacity: opt.key === "a" ? 0.55 : 1, whiteSpace: "pre-wrap",
                     transition: "all 0.3s",
                   }}>
-                    <div style={{ fontSize: 10, marginBottom: 8, color: opt.key === "b" ? W.accent : W.faint, letterSpacing: 1, textTransform: "uppercase" }}>
-                      {opt.key === "b" ? "✓ This one" : "✗ Too vague"}
+                    <div style={{ fontSize: 10, marginBottom: 8, color: opt.key === "b" ? W.accent : W.faint, letterSpacing: 0.5 }}>
+                      {opt.key === "b" ? "↑ more specific" : "↓ less specific"}
                     </div>
                     {opt.text}
                   </div>
@@ -1142,27 +1181,26 @@ export default function ThinkFirstEngine() {
                 <p style={{ fontFamily: W.serif, fontSize: "1.05rem", lineHeight: 1.8, color: W.text, margin: 0, fontStyle: "italic" }}>{insight}</p>
               </div>
 
-              <p style={{ fontSize: 14, color: choiceCorrect ? W.accent : W.muted, marginBottom: 24, lineHeight: 1.7 }}>
+              <p style={{ fontSize: 14, color: W.muted, marginBottom: 24, lineHeight: 1.75 }}>
                 {choiceCorrect
-                  ? (theme === "forest" ? "You felt it. That instinct will guide you." : theme === "studio" ? "Good eye. That's the beginning of craft." : "You already had that sense. We're just making it louder.")
-                  : "That's exactly where most people start. The difference becomes clearer with practice — and you just took the first step."
+                  ? "You noticed the difference — that instinct is exactly what we're going to develop."
+                  : "That's the most common starting point. The difference gets obvious quickly — you're already noticing it."
                 }
               </p>
 
               <button onClick={nextZeroPair} style={{
-                width: "100%", padding: "15px", borderRadius: 12, border: "none",
-                background: W.accent, color: "#fff", fontSize: 15, fontWeight: 600,
-                cursor: "pointer", fontFamily: W.sans, transition: "background 0.2s",
+                width: "100%", padding: "13px", borderRadius: 8, border: "none",
+                background: W.text, color: W.bg, fontSize: 14, fontWeight: 600,
+                cursor: "pointer", fontFamily: W.sans, transition: "opacity 0.2s",
               }}
-                onMouseEnter={e => e.currentTarget.style.background = W.accentSoft}
-                onMouseLeave={e => e.currentTarget.style.background = W.accent}
+                onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "1"}
               >
                 {zeroPairIdx < ZERO_PAIRS.length - 1 ? "One more →" : "Let's begin →"}
               </button>
             </div>
           )}
         </div>
-        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
       </div>
     );
   }
@@ -1295,7 +1333,6 @@ export default function ThinkFirstEngine() {
             </div>
           )}
         </div>
-        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
       </div>
     );
   }
@@ -1356,7 +1393,7 @@ export default function ThinkFirstEngine() {
                   onMouseEnter={e => { if (unlocked) e.currentTarget.style.borderColor = ability.color; }}
                   onMouseLeave={e => { if (unlocked) e.currentTarget.style.borderColor = `${ability.color}44`; }}
                 >
-                  {!unlocked && <div style={{ position: "absolute", top: 12, right: 14, fontSize: 14 }}>🔒</div>}
+                  {!unlocked && <div style={{ position: "absolute", top: 12, right: 14, fontSize: 11, color: nt.textFaint, fontStyle: "italic" }}>practise earlier skills first</div>}
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <span style={{ fontSize: 20, color: ability.color }}>{ability.icon}</span>
                     <div>
@@ -1435,7 +1472,6 @@ export default function ThinkFirstEngine() {
             </div>
           </div>
         </div>
-        <style>{`@keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
       </div>
     );
   }
