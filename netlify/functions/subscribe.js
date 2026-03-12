@@ -61,6 +61,7 @@ export default async function handler(req, context) {
   }
 
   const email = sanitiseEmail(body.email);
+  const segment = ["leader", "individual"].includes(body.segment) ? body.segment : "individual";
 
   if (!email || !EMAIL_RE.test(email)) {
     return new Response(JSON.stringify({ ok: false, error: "Please enter a valid email address." }), {
@@ -79,8 +80,9 @@ export default async function handler(req, context) {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        "form-name": "engine-capture",
+        "form-name": "waitlist",
         "email":     email,
+        "segment":   segment,
       }).toString(),
     });
   } catch (err) {

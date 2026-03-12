@@ -33,8 +33,8 @@ const W = {
   accent:      "#8C7355",
   accentSoft:  "#A08870",
   accentLight: "#F5EFE6",
-  serif:       "'Fraunces', Georgia, serif",
-  sans:        "'Plus Jakarta Sans', system-ui, sans-serif",
+  serif:       "Georgia, 'Times New Roman', serif",
+  sans:        "'Inter', system-ui, -apple-system, sans-serif",
 };
 
 // ============================================

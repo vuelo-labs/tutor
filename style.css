@@ -16,8 +16,8 @@
   --text-muted: #7a6e68;
   --border: #e5dfd6;
 
-  --font-serif: 'Fraunces', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
   --max-width: 1100px;
   --section-gap: 5rem;

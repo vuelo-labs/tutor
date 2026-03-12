@@ -4,135 +4,289 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Think First</title>
-  <meta name="description" content="Think First — coming soon." />
+  <meta name="description" content="Think First — thinking skills for professionals working alongside machines." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Netlify form detection -->
+  <form name="waitlist" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="email" name="email" /><input name="segment" /><input name="bot-field" />
+  </form>
+  <form name="engine-capture" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="email" name="email" /><input name="bot-field" />
+  </form>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       min-height: 100vh;
       background: #FAF8F4;
       color: #3D3530;
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 40px 24px;
+      -webkit-font-smoothing: antialiased;
     }
-    .wrap {
-      max-width: 400px;
-      width: 100%;
-    }
+
+    .wrap { max-width: 420px; width: 100%; }
+
     .eyebrow {
       font-size: 10px;
       letter-spacing: 4px;
       color: #B0A89E;
       text-transform: uppercase;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
+
     h1 {
-      font-family: 'Fraunces', Georgia, serif;
-      font-size: clamp(2rem, 6vw, 2.8rem);
-      font-weight: 600;
-      line-height: 1.3;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-weight: normal;
+      line-height: 1.35;
       color: #2A2420;
       font-style: italic;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
-    p {
+
+    .sub {
       font-size: 15px;
-      line-height: 1.85;
+      line-height: 1.8;
       color: #7A6E68;
-      margin-bottom: 40px;
+      margin-bottom: 12px;
     }
-    .form-row {
+
+    .sub strong { color: #3D3530; font-weight: 500; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #E5DFD6;
+      margin: 28px 0;
+    }
+
+    .segment-label {
+      font-size: 11px;
+      color: #B0A89E;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .segment-row {
       display: flex;
       gap: 8px;
+      margin-bottom: 20px;
     }
+
+    .seg-btn {
+      flex: 1;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #E5DFD6;
+      border-radius: 6px;
+      background: #F2EDE6;
+      color: #7A6E68;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .seg-btn.active {
+      background: #2A2420;
+      border-color: #2A2420;
+      color: #FAF8F4;
+    }
+
+    .context-note {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #7A6E68;
+      background: #F2EDE6;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      min-height: 56px;
+      transition: opacity 0.2s;
+    }
+
+    .context-note strong { color: #3D3530; font-weight: 500; }
+
+    .form-row { display: flex; gap: 8px; }
+
     input[type="email"] {
       flex: 1;
-      padding: 12px 16px;
+      padding: 11px 14px;
       font-family: inherit;
       font-size: 14px;
       border: 1px solid #E5DFD6;
-      border-radius: 8px;
-      background: #F2EDE6;
+      border-radius: 6px;
+      background: #fff;
       color: #2A2420;
       outline: none;
       transition: border-color 0.2s;
     }
+
     input[type="email"]:focus { border-color: #8C7355; }
-    input[type="email"]::placeholder { color: #B0A89E; }
-    button {
-      padding: 12px 20px;
+    input[type="email"]::placeholder { color: #C0B8B0; }
+
+    .submit-btn {
+      padding: 11px 18px;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       background: #2A2420;
       color: #FAF8F4;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       transition: opacity 0.2s;
       white-space: nowrap;
     }
-    button:hover { opacity: 0.85; }
+
+    .submit-btn:hover { opacity: 0.82; }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .note {
+      font-size: 11px;
+      color: #B0A89E;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .success {
+      display: none;
+      font-size: 14px;
+      color: #4A6741;
+      margin-top: 14px;
+      line-height: 1.7;
+    }
+
+    .error {
+      display: none;
+      font-size: 13px;
+      color: #B45309;
+      margin-top: 8px;
+    }
+
+    .try-link {
+      display: block;
+      margin-top: 28px;
       font-size: 12px;
       color: #B0A89E;
-      margin-top: 12px;
-      margin-bottom: 0;
+      text-align: center;
     }
-    .success { display: none; font-size: 14px; color: #4A6741; margin-top: 12px; }
-    .error { display: none; font-size: 13px; color: #B45309; margin-top: 8px; }
+
+    .try-link a {
+      color: #8C7355;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Hidden Netlify form for email capture -->
-  <form name="waitlist" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="email" name="email" />
-    <input name="bot-field" />
-  </form>
-  <form name="engine-capture" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="email" name="email" />
-    <input name="bot-field" />
-  </form>
-
   <div class="wrap">
     <div class="eyebrow">Think First</div>
-    <h1>Save your mental bandwidth for the people you love.</h1>
-    <p>We're building a quieter way to work with machines — so the cognitive load stays with the machine, and the important moments stay with you.</p>
+
+    <h1>Your team is already working with machines.<br>Are they working well with them?</h1>
+
+    <p class="sub">
+      AI is in every workflow now. But most people were never taught how to communicate with it clearly —
+      and <strong>unclear communication with machines costs time, produces noise, and quietly exhausts the people doing it.</strong>
+    </p>
+
+    <p class="sub">
+      Think First is a short daily practice that builds the one skill underneath every AI skill:
+      structured, clear thinking. Less friction. Less cognitive load. Better output.
+    </p>
+
+    <hr class="divider" />
+
+    <div class="segment-label">I'm interested as</div>
+    <div class="segment-row">
+      <button class="seg-btn active" onclick="setSegment('leader', this)">A people leader</button>
+      <button class="seg-btn" onclick="setSegment('individual', this)">An individual</button>
+    </div>
+
+    <div class="context-note" id="context-note">
+      <strong>For your team:</strong> Think First gives you a practical way to upskill your team on AI communication — measurable progress, no new tools, 15 minutes a day. We'll send you an early access brief you can take to your team or your leadership.
+    </div>
 
     <div class="form-row">
       <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
-      <button onclick="submit()">Notify me</button>
+      <button class="submit-btn" id="submit-btn" onclick="submitForm()">Get early access</button>
     </div>
-    <p class="note">No spam. One update when we're ready.</p>
-    <p class="success" id="success">You're on the list. We'll be in touch.</p>
-    <p class="error" id="error">Something went wrong — try again.</p>
+    <p class="note" id="form-note">No spam. We'll reach out personally when your spot is ready.</p>
+    <p class="success" id="success"></p>
+    <p class="error" id="error"></p>
+
+    <span class="try-link">Want to try the engine first? <a href="/engine">Open Think First →</a></span>
   </div>
 
   <script>
-    async function submit() {
+    let currentSegment = 'leader';
+
+    const notes = {
+      leader: '<strong>For your team:</strong> Think First gives you a practical way to upskill your team on AI communication — measurable progress, no new tools, 15 minutes a day. We\'ll send you an early access brief you can take to your team or your leadership.',
+      individual: '<strong>For yourself:</strong> A short daily practice that builds the thinking skills that make working with AI less effortful — and leave more of you left over at the end of the day.'
+    };
+
+    const successMsg = {
+      leader: 'You\'re on the list. We\'ll send you the early access brief shortly — something you can share with your team or take to your leadership.',
+      individual: 'You\'re on the list. We\'ll be in touch when your spot is ready.'
+    };
+
+    function setSegment(seg, btn) {
+      currentSegment = seg;
+      document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('context-note').innerHTML = notes[seg];
+    }
+
+    async function submitForm() {
       const email = document.getElementById('email').value.trim();
       const err = document.getElementById('error');
       const ok = document.getElementById('success');
+      const btn = document.getElementById('submit-btn');
       err.style.display = 'none'; ok.style.display = 'none';
-      if (!email || !email.includes('@')) { err.textContent = 'Please enter a valid email.'; err.style.display = 'block'; return; }
+      if (!email || !email.includes('@')) {
+        err.textContent = 'Please enter a valid email address.';
+        err.style.display = 'block'; return;
+      }
+      btn.disabled = true; btn.textContent = 'one moment…';
       try {
         const res = await fetch('/api/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, segment: currentSegment }),
         });
         const data = await res.json();
-        if (data.ok) { ok.style.display = 'block'; document.getElementById('email').value = ''; }
-        else { err.textContent = data.error || 'Something went wrong.'; err.style.display = 'block'; }
-      } catch { err.textContent = 'Connection error — check your internet and try again.'; err.style.display = 'block'; }
+        if (data.ok) {
+          ok.textContent = successMsg[currentSegment];
+          ok.style.display = 'block';
+          document.getElementById('email').value = '';
+          btn.style.display = 'none';
+          document.getElementById('form-note').style.display = 'none';
+        } else {
+          err.textContent = data.error || 'Something went wrong — try again.';
+          err.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Get early access';
+        }
+      } catch {
+        err.textContent = 'Connection error — check your internet and try again.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Get early access';
+      }
     }
-    document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+
+    document.getElementById('email').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitForm();
+    });
   </script>
 
 </body>
