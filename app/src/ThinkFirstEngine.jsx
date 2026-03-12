@@ -16,6 +16,16 @@ const ABILITIES = [
 const RANK_TITLES = ["", "Initiate", "Apprentice", "Apprentice", "Journeyman", "Journeyman", "Adept", "Adept", "Master", "Master", "Legend"];
 
 // ============================================
+// PHASE 2: OUTPUT CONTROL ABILITIES
+// ============================================
+const OUTPUT_ABILITIES = [
+  { id: "shape", name: "SHAPE", skill: "Format Control",       icon: "▦", color: "#F97316", tagline: "Tell the AI what structure to return" },
+  { id: "zoom",  name: "ZOOM",  skill: "Granularity Control",  icon: "⊙", color: "#0EA5E9", tagline: "Set the altitude — overview to deep dive, on demand" },
+  { id: "trim",  name: "TRIM",  skill: "Iterative Refinement", icon: "◁", color: "#84CC16", tagline: "Cut until only signal remains — no noise, no caveats" },
+  { id: "layer", name: "LAYER", skill: "Context & Depth",      icon: "⊟", color: "#A855F7", tagline: "Map the whole space first, then navigate deliberately" },
+];
+
+// ============================================
 // THREE NARRATIVE THEMES
 // ============================================
 const NARRATIVE_THEMES = {
@@ -162,6 +172,41 @@ const ZERO_PAIRS = [
 ];
 
 // ============================================
+// OUTPUT ZERO PAIRS — binary recognition for output control
+// Shown as per-ability intro the first time each output ability is entered
+// ============================================
+const OUTPUT_ZERO_PAIRS = [
+  {
+    abilityId: "shape",
+    question: { young: "Which answer is easier to use?", child: "Which response would actually help you right now?", teen: "Which response is more useful to you?", adult: "Which response is immediately actionable?" },
+    a: { young: "There are many interesting things about dogs including how they were domesticated thousands of years ago and the many different breeds and how they communicate using their tail and ears and barking...", child: "Climate change involves many factors including rising global temperatures, ocean acidification, melting ice caps, extreme weather events, biodiversity loss, and significant human and economic impacts...", teen: "There are many perspectives on social media including its effects on mental health, its role in political discourse, the business models involved, privacy implications, and its impact on human connection...", adult: "The decision involves multiple considerations including strategic fit, resource requirements, stakeholder impact, risk profile, timeline implications, and precedent effects on future decisions..." },
+    b: { young: "3 things about dogs:\n1. They wag their tail when happy 🐕\n2. They can smell 1000x better than us\n3. They've been with humans for 15,000 years", child: "3 key climate facts:\n• CO₂ traps heat in the atmosphere\n• Sea levels rising ~3mm per year\n• Extreme weather events up 5× since 1980", teen: "Social media: top 3 tensions\n1. Connection vs. comparison\n2. Free speech vs. misinformation\n3. Convenience vs. privacy", adult: "Decision summary:\nRecommendation: proceed / pause / stop\nKey risk: [one sentence]\nNext action: [owner + deadline]" },
+    insight: { young: "The second one! Short lists are much easier to use. When you tell it HOW to answer — not just WHAT — you get something you can actually use.", child: "The second response is the right size. You told it what format you wanted — and it delivered. That's SHAPE: controlling what comes back, not just what you ask.", teen: "Same knowledge, completely different usefulness. The second response is shaped for a specific purpose. SHAPE is the skill of controlling what the AI returns — and it changes everything.", adult: "Format control is the difference between information and actionable clarity. The first response answers the question. The second gives you something you can act on, share, or build from." },
+  },
+  {
+    abilityId: "zoom",
+    question: { young: "Which question about space is a better start?", child: "Which question gets you to understanding faster?", teen: "Which approach uses context more efficiently?", adult: "Which approach extracts knowledge with less cognitive load?" },
+    a: { young: "Tell me absolutely everything there is to know about space", child: "Explain everything about how the internet works in full detail", teen: "Give me a comprehensive explanation of how machine learning works, covering all the main concepts, techniques, applications, and limitations", adult: "Provide a thorough analysis of all dimensions of this strategic decision, including full context, stakeholder positions, risk scenarios, and implementation options" },
+    b: { young: "Name 3 things in space and one amazing fact about each one", child: "Give me 2 sentences on how the internet works, then I'll ask what to go deeper on", teen: "Give me a 3-sentence overview of machine learning. I'll tell you which part to go deep on.", adult: "List the 4–5 most critical factors. I'll direct which areas need detailed analysis." },
+    insight: { young: "The second question gets a useful answer! Big questions get big messy answers. Ask for exactly as much as you can use — then ask for more.", child: "The second question gets you the map first. Then you navigate to what matters. Start small, go deep deliberately — that's ZOOM.", teen: "The second question uses context as a resource. The overview gives you a map. Then you navigate to the one thing that matters. That's more efficient than asking for everything.", adult: "Layered questioning reduces cognitive load and improves response quality. Get the index first, access what you need, then go deep. Context is finite — use it deliberately." },
+  },
+  {
+    abilityId: "trim",
+    question: { young: "The Voice talked for a really long time. Which message would make it shorter?", child: "AXIS gave you 4 paragraphs. Which follow-up gets you what you need?", teen: "The response has too many caveats. Which follow-up fixes it?", adult: "The output exceeded brief. Which refinement instruction gets you signal?" },
+    a: { young: "Thanks! Tell me more.", child: "That was interesting, can you tell me more and expand on the key points?", teen: "Thanks, that was helpful. Could you elaborate and give me more examples?", adult: "Thank you — that's useful context. Could you expand on each of those points?" },
+    b: { young: "Say it again but just one sentence.", child: "Rewrite as 3 bullet points. Remove all the extra explanation.", teen: "Remove the caveats. Keep only the action steps. Rewrite in under 60 words.", adult: "Cut to: recommendation, one-sentence rationale, next action. Under 50 words, no qualifiers." },
+    insight: { young: "The second one makes it shorter! You can always ask it to say less — and you should, whenever the answer is too long to use.", child: "The second message is a TRIM instruction. It tells the AI exactly how to shrink the response. You can always refine what came back — that's half the skill.", teen: "TRIM is asking for less, not more. Removing caveats and length constraints produces more signal per sentence. The first follow-up gets more text. The second gets clarity.", adult: "Refinement instructions are often more valuable than the first prompt. Strip hedging, set word limits, define the structure you need. The second response is always better than the first — if you ask for it." },
+  },
+  {
+    abilityId: "layer",
+    question: { young: "You have a really BIG question. Which way of asking is smarter?", child: "You want to understand something huge. Which approach works better?", teen: "You're working on a complex topic. Which conversation design is better?", adult: "You need to extract knowledge from a large, complex context. Which approach is more effective?" },
+    a: { young: "Tell me everything about how the world works", child: "Explain the entire history of the Roman Empire with all the key events and people and why it fell", teen: "Write me a complete analysis of climate policy, covering the science, the economics, the politics, international agreements, and what individuals can do", adult: "Analyse this entire document and give me a comprehensive breakdown of all the key themes, decisions, risks, and recommended actions" },
+    b: { young: "Tell me 3 things about the world, then I'll ask more questions", child: "What were the 5 most important moments in Roman history? I'll then ask about whichever one matters most for my essay.", teen: "Identify the 4–5 most critical dimensions of climate policy. I'll pick one and we'll go deep.", adult: "Summarise the 4–5 key themes from this document. I'll specify the depth needed for each area." },
+    insight: { young: "The second way! Big questions are hard to answer well. Ask in layers — one piece at a time — and you get much better answers each time.", child: "The second approach gets a good answer first, then builds. You can always go deeper — but you can't un-read a wall of text. Layer your questions.", teen: "The second approach designs the conversation. Get the structure first. Then drill into what matters. Large topics need a map before they need a deep dive — that's LAYER.", adult: "Context architecture is a skill. A large context with no navigation structure produces noise. Summarise to get the map, then specify depth per area. That's how you manage information load without losing fidelity." },
+  },
+];
+
+// ============================================
 // QUEST SCENARIOS — story-framed, scaffolded
 // ============================================
 const QUESTS = [
@@ -280,6 +325,78 @@ const QUESTS = [
 ];
 
 // ============================================
+// OUTPUT QUESTS — teach the 4 output control skills
+// Assembly parts here build OUTPUT instructions (format / depth / scope)
+// not input prompts
+// ============================================
+const OUTPUT_QUESTS = [
+  {
+    abilityId: "shape",
+    title: { forest: "Shaping the Echo", studio: "The Format Brief", mirror: "Asking for What You Need" },
+    setup: {
+      young:  "The Voice just gave you a very long answer. You got confused. Now add a SHAPE to your question — tell it exactly how you want the answer to look.",
+      child:  "AXIS gave you 4 paragraphs when you needed 3 bullet points. Add a format instruction to your question — tell it the shape you want back.",
+      teen:   "Your question got a wall of text. Add a SHAPE instruction — tell AXIS what format to use, what to include, and what to cut.",
+      adult:  "The response exceeded scope. Add output format control: define the structure, the length limit, and what to exclude.",
+    },
+    assemblyParts: {
+      young:  { starts: ["Tell me", "Give me", "Show me", "List for me"], middles: ["3 things about", "the most important thing about", "2 fun facts about", "the steps to"], ends: ["in a short list ✅", "in just 2 sentences", "short and simple please", "one at a time"] },
+      child:  { starts: ["Return this as", "Give me", "Format your answer as", "Respond with"], middles: ["3 bullet points covering", "a numbered list of the key points about", "2–3 sentences about", "a simple table comparing"], ends: ["with no extra context", "in plain language", "the main points only", "most important first"] },
+      teen:   { starts: ["Format this as", "Return", "Give me", "Respond with"], middles: ["a numbered list of 3–5 points", "a table with two columns", "a one-paragraph summary of", "the 3 most important actions for"], ends: ["with no background or caveats", "covering only what I need to decide", "in under 100 words", "with the key insight first"] },
+      adult:  { starts: ["Return this as", "Respond with", "Format as", "Give me"], middles: ["a 3-point decision summary", "a table: option / risk / action", "a single recommendation and rationale for", "the top 3 actions only for"], ends: ["with no preamble", "removing all caveats and qualifiers", "in under 150 words", "in a format I can share directly"] },
+    },
+  },
+  {
+    abilityId: "zoom",
+    title: { forest: "Setting the Altitude", studio: "The Zoom Calibration", mirror: "Finding the Right Distance" },
+    setup: {
+      young:  "You want to know EVERYTHING about the ocean. But that's so much! Ask for just the right amount first — a small, perfect question.",
+      child:  "You want to understand a big topic. Get the overview first — then choose what to go deeper on. Practice the overview question.",
+      teen:   "Practice the ZOOM technique: satellite view first, street level second. Get the map before you navigate. Build the overview question.",
+      adult:  "Before diving into detail, set the altitude. Get the map first, then navigate. Build the overview question for a complex topic.",
+    },
+    assemblyParts: {
+      young:  { starts: ["Tell me", "What are", "Give me", "Name"], middles: ["3 amazing things about", "the most important thing about", "2 surprising facts about", "the biggest and smallest"], ends: ["the ocean 🌊", "space 🚀", "animals 🦁", "how things are made 🏭"] },
+      child:  { starts: ["Give me a", "Start with a", "First, just", "Open with"], middles: ["2-sentence overview of", "quick summary of the 3 main ideas about", "the top 5 things to know about", "brief explanation of"], ends: ["then I'll say what to go deeper on", "and I'll ask which part to explain fully", "before I ask for more detail", "so I can decide where to focus"] },
+      teen:   { starts: ["Give me a", "Start with", "Open with", "First, a"], middles: ["3-sentence overview of", "the 5 key concepts in", "a high-level map of", "the most important ideas about"], ends: ["then I'll ask which part to go deep on", "before we get into detail", "and I'll pick which to expand", "then follow one thread"] },
+      adult:  { starts: ["Give me a", "Start with", "Open with", "First, just"], middles: ["paragraph overview of", "the 4–5 key themes in", "the top-level structure of", "the 3–5 most critical dimensions of"], ends: ["then I'll direct where to drill down", "then specify the depth I need", "before requesting detail on any section", "so I can determine depth per area"] },
+    },
+  },
+  {
+    abilityId: "trim",
+    title: { forest: "Thinning the Forest", studio: "The Edit Pass", mirror: "Saying Less, Meaning More" },
+    setup: {
+      young:  "The Voice gave you a very long answer. You only needed the most important part. Tell it: make it shorter, keep only the best bit.",
+      child:  "AXIS gave you a long answer with lots of extra stuff. Write a TRIM instruction — tell it exactly what to keep and what to cut.",
+      teen:   "The response has too many caveats and too much context. Write a TRIM instruction to cut it to just the signal you need.",
+      adult:  "Output exceeded brief — too much hedging, too much context. Write the refinement instruction to strip it back to the decision.",
+    },
+    assemblyParts: {
+      young:  { starts: ["Make it", "Say it in", "Only tell me", "Cut it to"], middles: ["shorter please", "just 1 sentence", "the most important thing", "the one thing I should do"], ends: ["and nothing else", "right now", "without the rest", "please"] },
+      child:  { starts: ["Rewrite this in", "Cut this to", "Keep only", "Shorten to"], middles: ["3 bullet points", "the 2 most important points", "the actions I need to take", "one short paragraph"], ends: ["removing the background", "with no extra explanation", "leaving out everything else", "as simply as possible"] },
+      teen:   { starts: ["Rewrite this as", "Strip this to", "Remove everything except", "Cut to"], middles: ["3 bullet points", "one action sentence", "the key decision", "the core insight"], ends: ["with no caveats", "in under 50 words", "removing all qualifiers", "as directly as possible"] },
+      adult:  { starts: ["Rewrite this", "Cut to", "Remove all", "Distil to"], middles: ["as a 3-point decision brief", "the recommendation and rationale only", "caveats and hedging — return just", "the single most important action"], ends: ["in under 100 words", "with no preamble", "and the core conclusion", "with clear owner and deadline"] },
+    },
+  },
+  {
+    abilityId: "layer",
+    title: { forest: "Reading the Whole Forest", studio: "Context Architecture", mirror: "The Layered Conversation" },
+    setup: {
+      young:  "You have a BIG question with lots of parts. Ask for the first piece only — then you'll ask for more, one piece at a time.",
+      child:  "You want to understand something big. Plan your questions as layers — broad first, then specific. Build the first layer.",
+      teen:   "You're working with a large complex topic. Plan a layered conversation — overview first, deliberate depth second. Think: where do you summarise, where do you go deep?",
+      adult:  "Large context, multiple dimensions. Design the conversation architecture: where to summarise to preserve cognitive space, where to expand for detail, how to navigate the whole without losing any of it.",
+    },
+    assemblyParts: {
+      young:  { starts: ["First, tell me", "Start by telling me", "Begin with", "First, just"], middles: ["the 3 most important things about", "the biggest part of", "one thing at a time about", "the most surprising thing about"], ends: ["then I'll ask for more", "and then I'll ask the next question", "and we'll go from there", "and we'll keep going"] },
+      child:  { starts: ["Start by summarising", "First, give me", "Begin with", "Open with"], middles: ["the 3–5 main themes of", "a brief overview of", "the most important ideas from", "what I need to know first about"], ends: ["then ask me which part to expand", "and I'll say what matters most", "then I'll tell you where to go deeper", "and we'll build from there"] },
+      teen:   { starts: ["Start by mapping", "First, summarise", "Open with", "Begin with a"], middles: ["the 3–5 key themes of", "the top-level structure of", "the most critical decision points in", "the main tensions in"], ends: ["then I'll pick one thread to follow deeply", "and I'll direct where to go next", "then go one layer deeper at a time", "without going into detail yet"] },
+      adult:  { starts: ["Start with a", "Open with", "First, map", "Begin by identifying"], middles: ["paragraph-level summary of the key themes in", "the 4–5 most critical dimensions of", "where the key decisions and uncertainties sit in", "the structural tensions and trade-offs in"], ends: ["then I'll direct the next level of detail", "then specify which areas to expand first", "without expanding any section yet", "and I'll determine depth needed per area"] },
+    },
+  },
+];
+
+// ============================================
 // SCAFFOLDING DIAL — 0 to 3
 // 0: binary choice only
 // 1: bubble assembly (parts)
@@ -327,6 +444,35 @@ Your response:
 3. End with a single quiet reinforcement line from this theme (do not explain it, just let it land)
 
 Keep it SHORT — 3-4 sentences max. Never use the words 'decomposition', 'clarity', 'evaluation' or any framework jargon. Never be generic. Stay in the world.`;
+}
+
+function buildOutputCoachPrompt(ability, ageGroup, theme, userName, scaffoldLevel) {
+  const nt = NARRATIVE_THEMES[theme];
+  const ages = { young: "4-8 year old child", child: "9-12 year old", teen: "teenager (13-17)", adult: "adult" };
+  const warmth = { young: "very warm, playful, celebratory", child: "warm, encouraging, clear", teen: "direct, honest, subtly encouraging", adult: "clear, respectful, collegial" };
+  const skillDesc = {
+    shape: "format control — specifying the structure, shape, and length of what the AI returns",
+    zoom:  "granularity control — setting the altitude of a response, getting overview first then drilling deliberately",
+    trim:  "iterative refinement — cutting a response down to exactly the signal needed, removing noise, caveats, and scope creep",
+    layer: "context and depth management — mapping before navigating, summarising to preserve cognitive space, expanding deliberately",
+  };
+  const name = userName ? `Their name is ${userName}. ` : "";
+  return `You are ${nt.axisName} — a presence in ${nt.name}. You are coaching a ${ages[ageGroup]} in the output control skill called "${ability.name}": ${skillDesc[ability.id] || ability.tagline}.
+
+${name}Tone: ${warmth[ageGroup]}. Theme: ${nt.name}. Stay in this world lightly.
+Scaffolding level: ${scaffoldLevel}/3. ${scaffoldLevel <= 1 ? "Be very guiding — offer a specific next step or refinement." : scaffoldLevel === 2 ? "Be coaching — respond and push one level deeper." : "Be Socratic — challenge them to sharpen further."}
+
+You are responding to an OUTPUT CONTROL instruction they wrote. Evaluate it on:
+1. Does it specify the format? (bullets / table / one sentence / numbered list / paragraph)
+2. Does it constrain scope or length? (under X words / covering only Y / no Z / no caveats)
+3. Is it specific enough that two different AI responses would clearly differ?
+
+Your response:
+1. Name the specific output control technique they used — be precise (don't just say 'good job')
+2. Coach one precise improvement: a format spec, a length constraint, or a scope limit they could add
+3. End with a single quiet line from ${nt.name}
+
+Keep it SHORT — 3 sentences max. No framework jargon. Stay in the world.`;
 }
 
 // ============================================
@@ -516,6 +662,14 @@ export default function ThinkFirstEngine() {
   const [zeroPairIdx, setZeroPairIdx] = useState(0);
   const [zeroPhase, setZeroPhase]     = useState("question"); // question | insight | next
   const [zeroChosen, setZeroChosen]   = useState(null);
+  // Phase 2 — output control
+  const [outputLevels, setOutputLevels]         = useState({});
+  const [outputZeroSeen, setOutputZeroSeen]     = useState({});
+  const [outputZeroAbility, setOutputZeroAbility] = useState(null);
+  const [outputZeroIdx, setOutputZeroIdx]       = useState(0);
+  const [outputZeroPhase, setOutputZeroPhase]   = useState("question");
+  const [outputZeroChosen, setOutputZeroChosen] = useState(null);
+  const [isOutputQuest, setIsOutputQuest]       = useState(false);
   const chatEnd = useRef(null);
 
   const nt = NARRATIVE_THEMES[theme];
@@ -531,6 +685,8 @@ export default function ThinkFirstEngine() {
       setLevels(saved.levels);
       setTotalSessions(saved.totalSessions || 0);
       setScaffoldDial(saved.scaffoldDial ?? 1);
+      setOutputLevels(saved.outputLevels || {});
+      setOutputZeroSeen(saved.outputZeroSeen || {});
       setScreen("hub");
     } else {
       setScreen("theme");
@@ -538,7 +694,7 @@ export default function ThinkFirstEngine() {
   }, []);
 
   function persist(updates) {
-    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, ...updates });
+    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, ...updates });
   }
 
   // Scaffolding dial adjustment
@@ -570,6 +726,47 @@ export default function ThinkFirstEngine() {
   };
 
   // ============================================
+  // OUTPUT ZERO SESSION — per-ability intro
+  // ============================================
+  const startOutputQuest = (ability) => {
+    setActiveAbility(ability);
+    setIsOutputQuest(true);
+    setMessages([]);
+    if (!outputZeroSeen[ability.id]) {
+      const pairIdx = OUTPUT_ZERO_PAIRS.findIndex(p => p.abilityId === ability.id);
+      setOutputZeroAbility(ability);
+      setOutputZeroIdx(pairIdx >= 0 ? pairIdx : 0);
+      setOutputZeroPhase("question");
+      setOutputZeroChosen(null);
+      setScreen("outputzero");
+    } else {
+      setScreen("quest");
+      const quest = OUTPUT_QUESTS.find(q => q.abilityId === ability.id);
+      const setup = quest?.setup?.[ageGroup] || quest?.setup?.adult;
+      const title = quest?.title?.[theme] || ability.name;
+      setMessages([{ role: "assistant", content: `── ${title} ──\n\n${setup}` }]);
+    }
+  };
+
+  const handleOutputZeroChoice = (choice) => {
+    setOutputZeroChosen(choice);
+    setOutputZeroPhase("insight");
+    if (choice === "b") dialUp();
+  };
+
+  const continueFromOutputZero = () => {
+    const ability = outputZeroAbility;
+    const newSeen = { ...outputZeroSeen, [ability.id]: true };
+    setOutputZeroSeen(newSeen);
+    persist({ outputZeroSeen: newSeen });
+    setScreen("quest");
+    const quest = OUTPUT_QUESTS.find(q => q.abilityId === ability.id);
+    const setup = quest?.setup?.[ageGroup] || quest?.setup?.adult;
+    const title = quest?.title?.[theme] || ability.name;
+    setMessages([{ role: "assistant", content: `── ${title} ──\n\n${setup}` }]);
+  };
+
+  // ============================================
   // QUEST ENGINE
   // ============================================
   const startQuest = async (ability) => {
@@ -596,15 +793,16 @@ export default function ThinkFirstEngine() {
     if (fromAssembly) {/* assembly is neutral — don't adjust */}
 
     const ability = activeAbility;
-    const reply = await callAI(
-      buildCoachPrompt(ability, ageGroup, theme, userName, scaffoldDial),
-      newMsgs
-    );
+    const systemPrompt = isOutputQuest
+      ? buildOutputCoachPrompt(ability, ageGroup, theme, userName, scaffoldDial)
+      : buildCoachPrompt(ability, ageGroup, theme, userName, scaffoldDial);
+    const reply = await callAI(systemPrompt, newMsgs);
 
-    // Simple level progression: every 3 good exchanges per ability
+    // Level progression — track input and output levels separately
     const abilityMsgs = newMsgs.filter(m => m.role === "user").length;
-    const currentLevel = levels[ability.id] || 1;
-    const newLevels = { ...levels };
+    const currentLevels = isOutputQuest ? outputLevels : levels;
+    const currentLevel = currentLevels[ability.id] || 1;
+    const newLevels = { ...currentLevels };
     let levelled = false;
     if (abilityMsgs > 0 && abilityMsgs % 4 === 0 && currentLevel < 10) {
       newLevels[ability.id] = currentLevel + 1;
@@ -622,14 +820,19 @@ export default function ThinkFirstEngine() {
     }
 
     setMessages(updatedMsgs);
-    setLevels(newLevels);
     const newSessions = totalSessions + 1;
     setTotalSessions(newSessions);
-    persist({ levels: newLevels, totalSessions: newSessions, scaffoldDial });
+    if (isOutputQuest) {
+      setOutputLevels(newLevels);
+      persist({ outputLevels: newLevels, totalSessions: newSessions, scaffoldDial });
+    } else {
+      setLevels(newLevels);
+      persist({ levels: newLevels, totalSessions: newSessions, scaffoldDial });
+    }
     setLoading(false);
   };
 
-  const returnToHub = () => { setActiveAbility(null); setMessages([]); setScreen("hub"); };
+  const returnToHub = () => { setActiveAbility(null); setMessages([]); setIsOutputQuest(false); setScreen("hub"); };
 
   const isUnlocked = (ability) => {
     const idx = ABILITIES.findIndex(a => a.id === ability.id);
@@ -640,6 +843,10 @@ export default function ThinkFirstEngine() {
   const overallLevel = ABILITIES.length
     ? Math.max(1, Math.round(Object.values(levels).reduce((a, b) => a + b, 0) / ABILITIES.length))
     : 1;
+  const phase2Unlocked = Object.values(levels).some(l => l >= 2);
+  const outputOverallLevel = Object.keys(outputLevels).length > 0
+    ? Math.max(1, Math.round(Object.values(outputLevels).reduce((a, b) => a + b, 0) / Object.keys(outputLevels).length))
+    : 0;
 
   const AGE_OPTIONS = [
     { id: "young", label: "Young Explorer", ages: "4–8",   emoji: "🌱" },
@@ -886,6 +1093,98 @@ export default function ThinkFirstEngine() {
     );
   }
 
+  // ==================== OUTPUT ZERO SESSION ====================
+  if (screen === "outputzero" && outputZeroAbility) {
+    const pair = OUTPUT_ZERO_PAIRS[outputZeroIdx] || OUTPUT_ZERO_PAIRS[0];
+    const q = pair.question[ageGroup] || pair.question.adult;
+    const aText = pair.a[ageGroup] || pair.a.adult;
+    const bText = pair.b[ageGroup] || pair.b.adult;
+    const insight = pair.insight[ageGroup] || pair.insight.adult;
+    const ability = outputZeroAbility;
+
+    return (
+      <div style={{ ...base, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 28 }}>
+        <div style={{ width: "100%", maxWidth: 560 }}>
+          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 8 }}>
+            {ability.name} · Output Control
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+            <span style={{ fontSize: 22, color: ability.color }}>{ability.icon}</span>
+            <div style={{ fontSize: 13, color: ability.color, fontFamily: "monospace", fontWeight: 700, letterSpacing: 1 }}>{ability.skill}</div>
+          </div>
+
+          {outputZeroPhase === "question" && (
+            <>
+              <p style={{ fontSize: 17, lineHeight: 1.75, color: nt.text, marginBottom: 28 }}>{q}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
+                  <button key={opt.key} onClick={() => handleOutputZeroChoice(opt.key)} style={{
+                    padding: "20px 24px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+                    border: `2px solid ${nt.border}`, background: nt.bgCard, color: nt.text,
+                    fontSize: 14, lineHeight: 1.7, transition: "all 0.15s", whiteSpace: "pre-wrap",
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = ability.color; e.currentTarget.style.background = `${ability.color}10`; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = nt.border; e.currentTarget.style.background = nt.bgCard; }}
+                  >
+                    <span style={{ fontFamily: "monospace", fontSize: 11, color: nt.textMuted, display: "block", marginBottom: 6 }}>OPTION {opt.key.toUpperCase()}</span>
+                    {opt.text}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: nt.textFaint, marginTop: 20, textAlign: "center", fontFamily: "monospace" }}>
+                Notice which one serves you better.
+              </p>
+            </>
+          )}
+
+          {outputZeroPhase === "insight" && (
+            <div style={{ animation: "fadeUp 0.4s ease" }}>
+              <div style={{ marginBottom: 20, display: "flex", gap: 14 }}>
+                {[{ key: "a", text: aText }, { key: "b", text: bText }].map(opt => (
+                  <div key={opt.key} style={{
+                    flex: 1, padding: "16px 18px", borderRadius: 12, fontSize: 13, lineHeight: 1.6,
+                    border: `2px solid ${opt.key === "b" ? ability.color : nt.border}`,
+                    background: opt.key === "b" ? `${ability.color}15` : nt.bgCard,
+                    color: opt.key === "b" ? nt.text : nt.textMuted,
+                    opacity: opt.key === "a" ? 0.5 : 1, whiteSpace: "pre-wrap",
+                  }}>
+                    <div style={{ fontSize: 10, fontFamily: "monospace", marginBottom: 6, color: opt.key === "b" ? ability.color : nt.textFaint }}>
+                      {opt.key === "b" ? "✓ SHAPED" : "✗ UNSHAPED"}
+                    </div>
+                    {opt.text}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: "20px 22px", borderRadius: 14, background: nt.bgCard, border: `1px solid ${nt.border}`, marginBottom: 24 }}>
+                <div style={{ fontSize: 10, letterSpacing: 2, color: ability.color, fontFamily: "monospace", marginBottom: 10, textTransform: "uppercase" }}>{ability.name}</div>
+                <p style={{ fontSize: 15, lineHeight: 1.75, color: nt.text, margin: 0 }}>{insight}</p>
+              </div>
+
+              {outputZeroChosen === "b"
+                ? <p style={{ fontSize: 14, color: nt.accentSoft, marginBottom: 20, lineHeight: 1.6 }}>
+                    {theme === "forest" ? "You saw the shape in it. That instinct is worth developing." : theme === "studio" ? "Good eye. That's the beginning of output craft." : "You already had that sense. Now let's build on it."}
+                  </p>
+                : <p style={{ fontSize: 14, color: nt.textMuted, marginBottom: 20, lineHeight: 1.6 }}>
+                    That's where most people start. The difference becomes clear with practice — you're already noticing it.
+                  </p>
+              }
+
+              <button onClick={continueFromOutputZero} style={{
+                width: "100%", padding: "15px", borderRadius: 12, border: "none",
+                background: ability.color, color: "#000", fontSize: 14, fontWeight: 800,
+                cursor: "pointer", fontFamily: "monospace",
+              }}>
+                PRACTISE {ability.name} →
+              </button>
+            </div>
+          )}
+        </div>
+        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
+      </div>
+    );
+  }
+
   // ==================== HUB ====================
   if (screen === "hub") {
     return (
@@ -924,9 +1223,11 @@ export default function ThinkFirstEngine() {
             </div>
           )}
 
-          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 14 }}>Your Abilities</div>
+          <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 14 }}>
+            Phase 1 · Ask Well
+          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12, marginBottom: 36 }}>
             {ABILITIES.map(ability => {
               const unlocked = isUnlocked(ability);
               const level = levels[ability.id] || 1;
@@ -963,6 +1264,64 @@ export default function ThinkFirstEngine() {
               );
             })}
           </div>
+
+          {/* Phase 2: Output Control */}
+          <div style={{ borderTop: `1px solid ${nt.border}`, paddingTop: 28, opacity: phase2Unlocked ? 1 : 0.5 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+              <div>
+                <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: phase2Unlocked ? nt.accent : nt.textMuted, textTransform: "uppercase", marginBottom: 4 }}>
+                  Phase 2 · Receive Well
+                </div>
+                <div style={{ fontSize: 12, color: nt.textMuted, lineHeight: 1.6 }}>
+                  {phase2Unlocked
+                    ? "You've learned to ask well. Now shape what comes back."
+                    : "Reach Level 2 in any Phase 1 skill to unlock output control."}
+                </div>
+              </div>
+              {outputOverallLevel > 0 && (
+                <div style={{ fontFamily: "monospace", fontSize: 10, color: nt.accent, background: `${nt.accent}22`, padding: "3px 10px", borderRadius: 20, flexShrink: 0, marginLeft: 12 }}>
+                  {RANK_TITLES[outputOverallLevel] || "Initiate"} L{outputOverallLevel}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+              {OUTPUT_ABILITIES.map(ability => {
+                const level = outputLevels[ability.id] || 0;
+                return (
+                  <div key={ability.id} onClick={phase2Unlocked ? () => startOutputQuest(ability) : undefined} style={{
+                    padding: "18px 20px", borderRadius: 14, cursor: phase2Unlocked ? "pointer" : "default",
+                    border: `1px solid ${phase2Unlocked ? ability.color + "44" : nt.border}`,
+                    background: phase2Unlocked ? `${ability.color}08` : nt.bgCard,
+                    transition: "all 0.2s", position: "relative",
+                  }}
+                    onMouseEnter={e => { if (phase2Unlocked) e.currentTarget.style.borderColor = ability.color; }}
+                    onMouseLeave={e => { if (phase2Unlocked) e.currentTarget.style.borderColor = `${ability.color}44`; }}
+                  >
+                    {!phase2Unlocked && <div style={{ position: "absolute", top: 12, right: 14, fontSize: 14 }}>🔒</div>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: 20, color: ability.color }}>{ability.icon}</span>
+                      <div>
+                        <div style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: phase2Unlocked ? nt.text : nt.textMuted, letterSpacing: 1 }}>{ability.name}</div>
+                        <div style={{ fontSize: 11, color: nt.textMuted }}>{ability.skill}</div>
+                      </div>
+                      {phase2Unlocked && level > 0 && (
+                        <div style={{ marginLeft: "auto", fontFamily: "monospace", fontSize: 10, color: ability.color, background: `${ability.color}22`, padding: "3px 8px", borderRadius: 20 }}>
+                          {RANK_TITLES[level] || "Initiate"} L{level}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: nt.textMuted, lineHeight: 1.5, marginBottom: phase2Unlocked && level > 0 ? 10 : 0 }}>{ability.tagline}</div>
+                    {phase2Unlocked && level > 0 && (
+                      <div style={{ height: 3, background: nt.border, borderRadius: 2 }}>
+                        <div style={{ height: "100%", width: `${level * 10}%`, background: ability.color, borderRadius: 2, boxShadow: `0 0 6px ${ability.color}88`, transition: "width 0.5s" }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
         <style>{`@keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
       </div>
@@ -971,7 +1330,8 @@ export default function ThinkFirstEngine() {
 
   // ==================== QUEST ====================
   if (screen === "quest" && activeAbility) {
-    const quest = QUESTS.find(q => q.abilityId === activeAbility.id);
+    const questList = isOutputQuest ? OUTPUT_QUESTS : QUESTS;
+    const quest = questList.find(q => q.abilityId === activeAbility.id);
     const assemblyParts = quest?.assemblyParts?.[ageGroup] || quest?.assemblyParts?.adult;
     const showAssembly = !loading && scaffoldDial <= 1 && messages.length <= 2;
     const showFreeWithHints = !loading && scaffoldDial === 2;
@@ -990,7 +1350,10 @@ export default function ThinkFirstEngine() {
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <div style={{ fontFamily: "monospace", fontSize: 10, color: nt.textMuted }}>
-              {RANK_TITLES[levels[activeAbility.id] || 1]} · L{levels[activeAbility.id] || 1}
+              {isOutputQuest
+                ? `${RANK_TITLES[outputLevels[activeAbility.id] || 1] || "Initiate"} · L${outputLevels[activeAbility.id] || 0}`
+                : `${RANK_TITLES[levels[activeAbility.id] || 1]} · L${levels[activeAbility.id] || 1}`
+              }
             </div>
             <button onClick={returnToHub} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textMuted, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
               ← hub
