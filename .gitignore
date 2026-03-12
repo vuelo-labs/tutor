@@ -2,3 +2,5 @@ app/node_modules
 app-dist
 engine
 .DS_Store
+.env
+.env.local
