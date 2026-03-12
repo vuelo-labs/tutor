@@ -152,7 +152,8 @@ const NARRATIVE_THEMES = {
 
 // ============================================
 // ZERO SESSION — binary recognition, no typing
-// One pair per ability, ordered from most intuitive to most nuanced
+// Three pairs: specific input, shaped output, broken-down task
+// Output control is introduced from the very first session — not gated
 // ============================================
 const ZERO_PAIRS = [
   {
@@ -161,6 +162,13 @@ const ZERO_PAIRS = [
     a: { young: "do stuff", child: "help me with my project", teen: "help me", adult: "make it better" },
     b: { young: "get me a biscuit from the tin on the shelf", child: "find 5 facts about the water cycle for my Year 6 project", teen: "list 3 pros and cons of social media for a 16-year-old", adult: "draft a 3-point summary of the risks in this proposal" },
     insight: { young: "The second one! It says exactly what to get and where. That's the whole trick.", child: "The second one gives you something to actually do. Specific questions get specific answers.", teen: "The second one. It tells AXIS what, for whom, and in what format. That's FOCUS.", adult: "The second. Specific output, clear scope, defined context. That's what makes an instruction actionable." },
+  },
+  {
+    abilityId: "shape",
+    question: { young: "Which answer is easier to use?", child: "Which response would you actually read?", teen: "Which response respects your time?", adult: "Which response is immediately usable?" },
+    a: { young: "There are many interesting things about dogs. They were first domesticated thousands of years ago from wolves, and since then humans have bred them into hundreds of different breeds for different purposes. Dogs communicate using their tail, ears, and different types of barking. They have an incredibly strong sense of smell, estimated to be up to 100,000 times better than humans. They are used as working animals, companions, and in many therapeutic settings around the world.", child: "Climate change is a complex global challenge involving many interconnected systems. Rising greenhouse gas emissions from human activities are causing global temperatures to increase, which in turn affects weather patterns, sea levels, ecosystems, and human societies in numerous ways that scientists are still working to fully understand and predict.", teen: "There are many perspectives on this topic and it's important to consider multiple viewpoints before forming an opinion. The subject has historical, cultural, economic, and social dimensions that all interact with each other in complex ways, and any attempt to summarise it risks oversimplifying what is actually a nuanced and multifaceted issue.", adult: "This is a multifaceted issue that requires careful consideration of various factors including but not limited to the strategic implications, resource requirements, stakeholder perspectives, risk appetite, market conditions, competitive landscape, and the broader organisational context in which this decision is being made." },
+    b: { young: "3 things about dogs:\n• They wag their tail when happy\n• They can smell 100,000× better than us\n• They've lived with humans for 15,000 years", child: "3 climate facts:\n• CO₂ traps heat in the atmosphere\n• Sea levels rising ~3mm per year\n• Extreme weather events up 5× since 1980", teen: "Top 3 things to know:\n1. Define exactly what you're asking\n2. Specify the format you want back\n3. Set the length limit before you send it", adult: "3-point summary:\n1. Core recommendation\n2. Key risk\n3. Next action with owner" },
+    insight: { young: "The second one is short and easy to read! You can ask for a list instead of a big paragraph — and that changes everything about how useful the answer is.", child: "The second response is shaped — it has a structure you can scan and use. You can control how an answer looks, not just what it's about. That's a skill.", teen: "The second response takes 10 seconds to absorb. The first takes 3 minutes — and you'll remember less of it. Controlling the shape of what comes back is as important as controlling what you ask.", adult: "Format is not decoration. A well-shaped response reduces cognitive load, speeds up decisions, and is easier to share. You can always ask for the shape you need — and you should, every time." },
   },
   {
     abilityId: "decomposition",
@@ -414,66 +422,23 @@ function saveState(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s
 // ============================================
 // API
 // ============================================
-async function callAI(system, messages, maxTokens = 400) {
+// params: { abilityId, ageGroup, theme, userName, scaffoldDial, isOutputQuest }
+// messages: [{ role, content }]
+// System prompt is built server-side — never sent from the browser.
+async function callAI(params, messages) {
   try {
     const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system, messages }),
+      body: JSON.stringify({ ...params, messages }),
     });
     const data = await res.json();
     return data.content?.map(c => c.text || "").join("") || "...";
   } catch { return "Connection lost. Please try again."; }
 }
 
-function buildCoachPrompt(ability, ageGroup, theme, userName, scaffoldLevel) {
-  const nt = NARRATIVE_THEMES[theme];
-  const ages = { young: "4-8 year old child", child: "9-12 year old", teen: "teenager (13-17)", adult: "adult" };
-  const warmth = { young: "very warm, playful, celebratory", child: "warm, encouraging, clear", teen: "direct, honest, subtly encouraging", adult: "clear, respectful, collegial" };
-  const name = userName ? `Their name is ${userName}. ` : "";
-  return `You are ${nt.axisName} — a presence in ${nt.name} that responds to structured thought. You are training a ${ages[ageGroup]} in the ability called "${ability.name}" (the underlying skill is: ${ability.skill} — ${ability.tagline}).
-
-${name}Tone: ${warmth[ageGroup]}.
-Theme: ${nt.name}. Stay in this world — use its language and atmosphere lightly.
-
-Scaffolding level: ${scaffoldLevel}/3. ${scaffoldLevel <= 1 ? "Be very guiding — offer a specific next step or suggestion." : scaffoldLevel === 2 ? "Be coaching — respond and push one level deeper." : "Be Socratic — challenge and expect more."}
-
-Your response:
-1. Acknowledge what they did well — SPECIFICALLY (name the structural thing they did right, not just 'good job')
-2. Coach the next step — one specific thing to add, sharpen, or deepen
-3. End with a single quiet reinforcement line from this theme (do not explain it, just let it land)
-
-Keep it SHORT — 3-4 sentences max. Never use the words 'decomposition', 'clarity', 'evaluation' or any framework jargon. Never be generic. Stay in the world.`;
-}
-
-function buildOutputCoachPrompt(ability, ageGroup, theme, userName, scaffoldLevel) {
-  const nt = NARRATIVE_THEMES[theme];
-  const ages = { young: "4-8 year old child", child: "9-12 year old", teen: "teenager (13-17)", adult: "adult" };
-  const warmth = { young: "very warm, playful, celebratory", child: "warm, encouraging, clear", teen: "direct, honest, subtly encouraging", adult: "clear, respectful, collegial" };
-  const skillDesc = {
-    shape: "format control — specifying the structure, shape, and length of what the AI returns",
-    zoom:  "granularity control — setting the altitude of a response, getting overview first then drilling deliberately",
-    trim:  "iterative refinement — cutting a response down to exactly the signal needed, removing noise, caveats, and scope creep",
-    layer: "context and depth management — mapping before navigating, summarising to preserve cognitive space, expanding deliberately",
-  };
-  const name = userName ? `Their name is ${userName}. ` : "";
-  return `You are ${nt.axisName} — a presence in ${nt.name}. You are coaching a ${ages[ageGroup]} in the output control skill called "${ability.name}": ${skillDesc[ability.id] || ability.tagline}.
-
-${name}Tone: ${warmth[ageGroup]}. Theme: ${nt.name}. Stay in this world lightly.
-Scaffolding level: ${scaffoldLevel}/3. ${scaffoldLevel <= 1 ? "Be very guiding — offer a specific next step or refinement." : scaffoldLevel === 2 ? "Be coaching — respond and push one level deeper." : "Be Socratic — challenge them to sharpen further."}
-
-You are responding to an OUTPUT CONTROL instruction they wrote. Evaluate it on:
-1. Does it specify the format? (bullets / table / one sentence / numbered list / paragraph)
-2. Does it constrain scope or length? (under X words / covering only Y / no Z / no caveats)
-3. Is it specific enough that two different AI responses would clearly differ?
-
-Your response:
-1. Name the specific output control technique they used — be precise (don't just say 'good job')
-2. Coach one precise improvement: a format spec, a length constraint, or a scope limit they could add
-3. End with a single quiet line from ${nt.name}
-
-Keep it SHORT — 3 sentences max. No framework jargon. Stay in the world.`;
-}
+// System prompt is now built server-side in netlify/functions/claude.js.
+// The client sends structured params; the server builds and owns the prompt.
 
 // ============================================
 // UI COMPONENTS
@@ -793,10 +758,10 @@ export default function ThinkFirstEngine() {
     if (fromAssembly) {/* assembly is neutral — don't adjust */}
 
     const ability = activeAbility;
-    const systemPrompt = isOutputQuest
-      ? buildOutputCoachPrompt(ability, ageGroup, theme, userName, scaffoldDial)
-      : buildCoachPrompt(ability, ageGroup, theme, userName, scaffoldDial);
-    const reply = await callAI(systemPrompt, newMsgs);
+    const reply = await callAI(
+      { abilityId: ability.id, ageGroup, theme, userName: userName || "", scaffoldDial, isOutputQuest: !!isOutputQuest },
+      newMsgs
+    );
 
     // Level progression — track input and output levels separately
     const abilityMsgs = newMsgs.filter(m => m.role === "user").length;
@@ -1224,7 +1189,7 @@ export default function ThinkFirstEngine() {
           )}
 
           <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 14 }}>
-            Phase 1 · Ask Well
+            Ask Well
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12, marginBottom: 36 }}>
@@ -1265,17 +1230,15 @@ export default function ThinkFirstEngine() {
             })}
           </div>
 
-          {/* Phase 2: Output Control */}
-          <div style={{ borderTop: `1px solid ${nt.border}`, paddingTop: 28, opacity: phase2Unlocked ? 1 : 0.5 }}>
+          {/* Receive Well — no gate, available from day one */}
+          <div style={{ borderTop: `1px solid ${nt.border}`, paddingTop: 28 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
               <div>
-                <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: phase2Unlocked ? nt.accent : nt.textMuted, textTransform: "uppercase", marginBottom: 4 }}>
-                  Phase 2 · Receive Well
+                <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase", marginBottom: 4 }}>
+                  Receive Well
                 </div>
                 <div style={{ fontSize: 12, color: nt.textMuted, lineHeight: 1.6 }}>
-                  {phase2Unlocked
-                    ? "You've learned to ask well. Now shape what comes back."
-                    : "Reach Level 2 in any Phase 1 skill to unlock output control."}
+                  Shape what comes back. Every conversation has two sides.
                 </div>
               </div>
               {outputOverallLevel > 0 && (
@@ -1289,30 +1252,29 @@ export default function ThinkFirstEngine() {
               {OUTPUT_ABILITIES.map(ability => {
                 const level = outputLevels[ability.id] || 0;
                 return (
-                  <div key={ability.id} onClick={phase2Unlocked ? () => startOutputQuest(ability) : undefined} style={{
-                    padding: "18px 20px", borderRadius: 14, cursor: phase2Unlocked ? "pointer" : "default",
-                    border: `1px solid ${phase2Unlocked ? ability.color + "44" : nt.border}`,
-                    background: phase2Unlocked ? `${ability.color}08` : nt.bgCard,
+                  <div key={ability.id} onClick={() => startOutputQuest(ability)} style={{
+                    padding: "18px 20px", borderRadius: 14, cursor: "pointer",
+                    border: `1px solid ${ability.color}44`,
+                    background: `${ability.color}08`,
                     transition: "all 0.2s", position: "relative",
                   }}
-                    onMouseEnter={e => { if (phase2Unlocked) e.currentTarget.style.borderColor = ability.color; }}
-                    onMouseLeave={e => { if (phase2Unlocked) e.currentTarget.style.borderColor = `${ability.color}44`; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = ability.color; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = `${ability.color}44`; }}
                   >
-                    {!phase2Unlocked && <div style={{ position: "absolute", top: 12, right: 14, fontSize: 14 }}>🔒</div>}
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                       <span style={{ fontSize: 20, color: ability.color }}>{ability.icon}</span>
                       <div>
-                        <div style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: phase2Unlocked ? nt.text : nt.textMuted, letterSpacing: 1 }}>{ability.name}</div>
+                        <div style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: nt.text, letterSpacing: 1 }}>{ability.name}</div>
                         <div style={{ fontSize: 11, color: nt.textMuted }}>{ability.skill}</div>
                       </div>
-                      {phase2Unlocked && level > 0 && (
+                      {level > 0 && (
                         <div style={{ marginLeft: "auto", fontFamily: "monospace", fontSize: 10, color: ability.color, background: `${ability.color}22`, padding: "3px 8px", borderRadius: 20 }}>
                           {RANK_TITLES[level] || "Initiate"} L{level}
                         </div>
                       )}
                     </div>
-                    <div style={{ fontSize: 12, color: nt.textMuted, lineHeight: 1.5, marginBottom: phase2Unlocked && level > 0 ? 10 : 0 }}>{ability.tagline}</div>
-                    {phase2Unlocked && level > 0 && (
+                    <div style={{ fontSize: 12, color: nt.textMuted, lineHeight: 1.5, marginBottom: level > 0 ? 10 : 0 }}>{ability.tagline}</div>
+                    {level > 0 && (
                       <div style={{ height: 3, background: nt.border, borderRadius: 2 }}>
                         <div style={{ height: "100%", width: `${level * 10}%`, background: ability.color, borderRadius: 2, boxShadow: `0 0 6px ${ability.color}88`, transition: "width 0.5s" }} />
                       </div>
