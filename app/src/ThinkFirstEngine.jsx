@@ -1013,7 +1013,7 @@ export default function ThinkFirstEngine() {
                     transition: "all 0.3s",
                   }}>
                     <div style={{ fontSize: 10, marginBottom: 8, color: opt.key === "b" ? W.accent : W.faint, letterSpacing: 0.5 }}>
-                      {opt.key === "b" ? "↑ more specific" : "↓ less specific"}
+                      {opt.key === "b" ? "↑ more specific" : "also works"}
                     </div>
                     {opt.text}
                   </div>
@@ -1028,7 +1028,7 @@ export default function ThinkFirstEngine() {
               <p style={{ fontSize: 14, color: W.muted, marginBottom: 24, lineHeight: 1.75 }}>
                 {choiceCorrect
                   ? "You noticed the difference — that instinct is exactly what we're going to develop."
-                  : "That's the most common starting point. The difference gets obvious quickly — you're already noticing it."
+                  : "Yep, that works. If you want more specific results though, the second option is a closer match for what you're trying to achieve — and that's the instinct we're here to sharpen."
                 }
               </p>
 
@@ -1146,7 +1146,7 @@ export default function ThinkFirstEngine() {
                     opacity: opt.key === "a" ? 0.5 : 1, whiteSpace: "pre-wrap",
                   }}>
                     <div style={{ fontSize: 10, fontFamily: "monospace", marginBottom: 6, color: opt.key === "b" ? ability.color : nt.textFaint }}>
-                      {opt.key === "b" ? "✓ SHAPED" : "✗ UNSHAPED"}
+                      {opt.key === "b" ? "↑ more shaped" : "also works"}
                     </div>
                     {opt.text}
                   </div>
@@ -1163,7 +1163,7 @@ export default function ThinkFirstEngine() {
                     {theme === "forest" ? "You saw the shape in it. That instinct is worth developing." : theme === "studio" ? "Good eye. That's the beginning of output craft." : "You already had that sense. Now let's build on it."}
                   </p>
                 : <p style={{ fontSize: 14, color: nt.textMuted, marginBottom: 20, lineHeight: 1.6 }}>
-                    That's where most people start. The difference becomes clear with practice — you're already noticing it.
+                    Yep, that works. The second option just gives you more control over what comes back — and that's the instinct we're here to sharpen.
                   </p>
               }
 
