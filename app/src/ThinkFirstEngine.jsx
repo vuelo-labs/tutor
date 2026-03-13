@@ -16,10 +16,7 @@ const ABILITIES = [
 const RANK_TITLES = ["", "Initiate", "Apprentice", "Apprentice", "Journeyman", "Journeyman", "Adept", "Adept", "Master", "Master", "Legend"];
 
 // ============================================
-// WARM PALETTE — used for all pre-quest screens
-// (email gate, theme select, profile, zero session, hub)
-// Quest/intro screens use the narrative theme's palette.
-// Consistent with the landing page design tokens.
+// WARM PALETTE — used for pre-quest screens and zero session
 // ============================================
 const W = {
   bg:          "#FAF8F4",
@@ -35,6 +32,70 @@ const W = {
   accentLight: "#F5EFE6",
   serif:       "Georgia, 'Times New Roman', serif",
   sans:        "'Inter', system-ui, -apple-system, sans-serif",
+};
+
+// ============================================
+// PROFILE PALETTE — cool, calm, reflective
+// ============================================
+const P = {
+  bg:          "#F0F4F8",
+  bgCard:      "#FFFFFF",
+  bgInner:     "#F8FAFC",
+  border:      "#D8E2ED",
+  text:        "#263340",
+  muted:       "#5F7485",
+  faint:       "#9EB0C0",
+  accent:      "#4A7FA5",
+  accentSoft:  "#6B9BBF",
+  accentLight: "#E5EFF7",
+  serif:       "Georgia, 'Times New Roman', serif",
+  sans:        "'Inter', system-ui, -apple-system, sans-serif",
+};
+
+// ============================================
+// SPIDER CHART — radar chart for skill profile
+// ============================================
+const SpiderChart = ({ abilities, levels }) => {
+  const cx = 130, cy = 130, r = 90;
+  const n = abilities.length;
+  const angle = (i) => (i * 2 * Math.PI / n) - Math.PI / 2;
+  const pt = (i, radius) => ({
+    x: cx + radius * Math.cos(angle(i)),
+    y: cy + radius * Math.sin(angle(i)),
+  });
+
+  const rings = [0.25, 0.5, 0.75, 1.0];
+  const skillPts = abilities.map((a, i) => {
+    const frac = Math.max(0.06, ((levels[a.id] || 1) - 1) / 9);
+    return pt(i, frac * r);
+  });
+  const polyPoints = skillPts.map(p => `${p.x},${p.y}`).join(" ");
+
+  return (
+    <svg viewBox="0 0 260 260" style={{ width: "100%", maxWidth: 260 }}>
+      {rings.map((frac, ri) => {
+        const rpts = abilities.map((_, i) => pt(i, frac * r));
+        return <polygon key={ri} points={rpts.map(p => `${p.x},${p.y}`).join(" ")} fill="none" stroke={P.border} strokeWidth={ri === 3 ? "1.5" : "1"} />;
+      })}
+      {abilities.map((_, i) => {
+        const outer = pt(i, r);
+        return <line key={i} x1={cx} y1={cy} x2={outer.x} y2={outer.y} stroke={P.border} strokeWidth="1" />;
+      })}
+      <polygon points={polyPoints} fill={`${P.accent}20`} stroke={P.accent} strokeWidth="2" strokeLinejoin="round" />
+      {skillPts.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={P.accent} />
+      ))}
+      {abilities.map((a, i) => {
+        const lp = pt(i, r + 20);
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
+            fontSize="8.5" fill={P.muted} fontFamily="monospace" letterSpacing="0.5">
+            {a.name}
+          </text>
+        );
+      })}
+    </svg>
+  );
 };
 
 // ============================================
@@ -1181,6 +1242,81 @@ export default function ThinkFirstEngine() {
     );
   }
 
+  // ==================== PROFILE ====================
+  if (screen === "profile") {
+    const topSkill = ABILITIES.reduce((best, a) => (levels[a.id] || 1) > (levels[best.id] || 1) ? a : best, ABILITIES[0]);
+    const touchedCount = ABILITIES.filter(a => (levels[a.id] || 1) > 1).length;
+    const outputTouched = Object.keys(outputLevels).length;
+
+    const reflection = (() => {
+      if (totalSessions === 0) return "You haven't started a practice session yet. When you do, this space will begin to reflect the shape of your thinking.";
+      const top = topSkill.skill.toLowerCase();
+      const thin = ABILITIES.filter(a => (levels[a.id] || 1) <= 1 && a.id !== topSkill.id);
+      const thinName = thin.length > 0 ? thin[0].skill.toLowerCase() : null;
+      if (totalSessions < 5) return `Early days — and ${top} is already showing up as a natural starting point. The shape of your chart will fill out quickly from here. There's no destination, just a gradually clearer picture of how you think.`;
+      if (touchedCount <= 2) return `You've been going deep on ${top}. That's a good instinct — one skill developed well is worth more than seven touched lightly. When it feels natural, ${thinName ? thinName : "the other skills"} is an interesting next thread.`;
+      if (outputTouched === 0) return `You've been building the input side of the practice — ${top} is your strongest thread so far. The output skills are worth exploring when you're ready: they're about what comes back, not just what you send.`;
+      return `${totalSessions} sessions in, and the shape is becoming readable. ${top} is where you've been spending the most time. The chart doesn't measure ability — it reflects attention. What you practise is what grows.`;
+    })();
+
+    return (
+      <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: P.sans, animation: "screenFade 0.8s ease" }}>
+        <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: P.faint, textTransform: "uppercase" }}>Think First · Profile</div>
+            <button onClick={() => setScreen("hub")} style={{ background: "none", border: "none", color: P.faint, fontSize: 13, cursor: "pointer", fontFamily: P.sans }}>← back</button>
+          </div>
+
+          {userName && (
+            <h1 style={{ fontFamily: P.serif, fontSize: "clamp(1.6rem, 4vw, 2rem)", fontWeight: 400, fontStyle: "italic", color: P.text, margin: "0 0 32px" }}>
+              {userName}
+            </h1>
+          )}
+
+          {/* Spider chart */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 36 }}>
+            <SpiderChart abilities={ABILITIES} levels={levels} />
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 28 }}>
+            {[
+              { label: "Sessions", value: totalSessions },
+              { label: "Skills in motion", value: `${touchedCount} of ${ABILITIES.length}` },
+              { label: "Output skills", value: outputTouched > 0 ? `${outputTouched} of ${OUTPUT_ABILITIES.length}` : "not yet" },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ padding: "16px", borderRadius: 10, background: P.bgCard, border: `1px solid ${P.border}`, textAlign: "center" }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: P.accent, fontFamily: "monospace", marginBottom: 4 }}>{value}</div>
+                <div style={{ fontSize: 11, color: P.faint, letterSpacing: 0.5 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Top skill */}
+          {totalSessions > 0 && (
+            <div style={{ padding: "14px 18px", borderRadius: 10, background: P.accentLight, border: `1px solid ${P.border}`, marginBottom: 28, display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 20, color: topSkill.color }}>{topSkill.icon}</span>
+              <div>
+                <div style={{ fontSize: 11, color: P.faint, letterSpacing: 0.5, marginBottom: 2 }}>Most practised</div>
+                <div style={{ fontSize: 14, color: P.text, fontWeight: 500 }}>{topSkill.skill}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Reflection */}
+          <div style={{ padding: "22px 24px", borderRadius: 12, background: P.bgCard, border: `1px solid ${P.border}` }}>
+            <div style={{ fontSize: 10, letterSpacing: 3, color: P.accent, textTransform: "uppercase", marginBottom: 14 }}>Reflection</div>
+            <p style={{ fontFamily: P.serif, fontSize: "1rem", lineHeight: 1.9, color: P.text, margin: 0, fontStyle: "italic" }}>
+              {reflection}
+            </p>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
   // ==================== HUB ====================
   if (screen === "hub") {
     return (
@@ -1198,6 +1334,9 @@ export default function ThinkFirstEngine() {
               <div style={{ fontSize: 10, color: nt.textMuted, fontFamily: "monospace" }}>SESSIONS</div>
               <div style={{ fontFamily: "monospace", fontSize: 17, color: nt.accent, fontWeight: 700 }}>{totalSessions}</div>
             </div>
+            <button onClick={() => setScreen("profile")} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textMuted, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>
+              profile
+            </button>
             <button onClick={() => { localStorage.removeItem(STORAGE_KEY); setLevels({}); setScreen("onboard"); }} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${nt.border}`, background: "transparent", color: nt.textFaint, fontSize: 10, cursor: "pointer", fontFamily: "monospace" }}>
               reset
             </button>
