@@ -99,6 +99,39 @@ const SpiderChart = ({ abilities, levels }) => {
 };
 
 // ============================================
+// SWIRL BACKGROUND — organic, breathing, human spaces only
+// Machine spaces (quest, chat) stay clean and undecorated.
+// The contrast is intentional: fluid where you think, precise where you instruct.
+// ============================================
+const SwirlBackground = ({ color = "#8C7355" }) => (
+  <svg
+    aria-hidden="true"
+    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "hidden" }}
+    viewBox="0 0 1000 1000"
+    preserveAspectRatio="xMidYMid slice"
+  >
+    {/* Primary sweep — large, slow, barely visible */}
+    <path
+      d="M-150,250 C100,50 300,550 520,420 C740,290 780,80 1050,180 C1200,250 1100,580 1150,720"
+      fill="none" stroke={color} strokeWidth="140" opacity="0.045"
+      style={{ animation: "swirl1 55s ease-in-out infinite alternate" }}
+    />
+    {/* Secondary drift — smaller, offset timing */}
+    <path
+      d="M-80,680 C180,880 420,480 620,630 C820,780 880,380 1100,480"
+      fill="none" stroke={color} strokeWidth="90" opacity="0.03"
+      style={{ animation: "swirl2 70s ease-in-out infinite alternate" }}
+    />
+    {/* Tertiary curl — smallest, tightest */}
+    <path
+      d="M280,-80 C160,180 580,280 480,520 C380,760 80,820 180,1080"
+      fill="none" stroke={color} strokeWidth="60" opacity="0.025"
+      style={{ animation: "swirl3 50s ease-in-out infinite alternate-reverse" }}
+    />
+  </svg>
+);
+
+// ============================================
 // PHASE 2: OUTPUT CONTROL ABILITIES
 // ============================================
 const OUTPUT_ABILITIES = [
@@ -772,9 +805,13 @@ export default function ThinkFirstEngine() {
     s.textContent = `
       @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
       @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes swirl1 { from { transform: translateX(-24px) translateY(-12px) rotate(-2deg); } to { transform: translateX(24px) translateY(12px) rotate(2deg); } }
+      @keyframes swirl2 { from { transform: translateX(16px) translateY(-20px) rotate(1.5deg); } to { transform: translateX(-16px) translateY(20px) rotate(-1.5deg); } }
+      @keyframes swirl3 { from { transform: translateX(-10px) translateY(18px) rotate(-1deg); } to { transform: translateX(10px) translateY(-18px) rotate(1deg); } }
       @media (prefers-reduced-motion: reduce) {
         @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeUp { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes swirl1, @keyframes swirl2, @keyframes swirl3 { from { transform: none; } to { transform: none; } }
       }
     `;
     document.head.appendChild(s);
@@ -1011,17 +1048,18 @@ export default function ThinkFirstEngine() {
     };
 
     return (
-      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.8s ease" }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", animation: "screenFade 0.8s ease", position: "relative", overflow: "hidden" }}>
+        <SwirlBackground color={W.accent} />
+        <div style={{ width: "100%", maxWidth: 440, position: "relative" }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>Think First</div>
 
           <div style={{ padding: "20px 22px", borderRadius: 12, background: W.bgCard, border: `1px solid ${W.border}`, marginBottom: 28 }}>
             <div style={{ fontSize: 10, letterSpacing: 2, color: W.accent, marginBottom: 10, textTransform: "uppercase" }}>Think First</div>
             <p style={{ fontFamily: W.serif, fontSize: "1.1rem", lineHeight: 1.85, color: W.text, margin: 0, fontStyle: "italic" }}>
-              Hi — I help people work more clearly with machines. Before we start, tell me a little about yourself.
+              Hi — I help people work more clearly with machines. Not faster. Clearer.
             </p>
             <p style={{ fontSize: 13, lineHeight: 1.75, color: W.muted, margin: "10px 0 0" }}>
-              What do you do? Where does AI show up in your day? No wrong answers.
+              Tell me a little about yourself — what you do, where AI shows up in your day. The machine is happy to wait.
             </p>
           </div>
 
@@ -1073,8 +1111,9 @@ export default function ThinkFirstEngine() {
     const ability = ABILITIES.find(a => a.id === pair.abilityId);
 
     return (
-      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      <div style={{ minHeight: "100vh", background: W.bg, color: W.text, fontFamily: W.sans, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", position: "relative", overflow: "hidden" }}>
+        <SwirlBackground color={W.accent} />
+        <div style={{ width: "100%", maxWidth: 440, position: "relative" }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: W.faint, textTransform: "uppercase", marginBottom: 32 }}>
             {zeroPairIdx === 0 ? "Before we start" : zeroPairIdx === 1 ? "One more" : "Last one"}
           </div>
@@ -1301,8 +1340,9 @@ export default function ThinkFirstEngine() {
     })();
 
     return (
-      <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: P.sans, animation: "screenFade 0.8s ease" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
+      <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: P.sans, animation: "screenFade 0.8s ease", position: "relative", overflow: "hidden" }}>
+        <SwirlBackground color={P.accent} />
+        <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px", position: "relative" }}>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: P.faint, textTransform: "uppercase" }}>Think First · Profile</div>
@@ -1402,7 +1442,8 @@ export default function ThinkFirstEngine() {
   // ==================== HUB ====================
   if (screen === "hub") {
     return (
-      <div style={{ minHeight: "100vh", background: nt.gradient || nt.bg, color: nt.text, fontFamily: "system-ui, sans-serif", animation: "screenFade 0.8s ease" }}>
+      <div style={{ minHeight: "100vh", background: nt.gradient || nt.bg, color: nt.text, fontFamily: "system-ui, sans-serif", animation: "screenFade 0.8s ease", position: "relative", overflow: "hidden" }}>
+        <SwirlBackground color={nt.accent} />
         <div style={{ padding: "16px 24px", borderBottom: `1px solid ${nt.border}`, background: nt.bgCard, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: 3, color: nt.textMuted, textTransform: "uppercase" }}>ThinkFirst · {nt.name}</div>
@@ -1431,12 +1472,22 @@ export default function ThinkFirstEngine() {
           </div>
         )}
 
-        <div style={{ padding: "24px", maxWidth: 860, margin: "0 auto" }}>
+        <div style={{ padding: "24px", maxWidth: 860, margin: "0 auto", position: "relative" }}>
           {totalSessions === 0 && (
             <div style={{ padding: "16px 20px", borderRadius: 12, border: `1px solid ${nt.accent}44`, background: `${nt.accent}0A`, marginBottom: 24 }}>
               <div style={{ fontSize: 14, color: nt.textMuted, lineHeight: 1.7 }}>
                 {nt.hubGreeting(userName)} <span style={{ color: nt.text }}>{nt.hubSubtext}</span>
               </div>
+            </div>
+          )}
+
+          {/* Quiet rest reminder — appears every 5 sessions, never intrusive */}
+          {totalSessions > 0 && totalSessions % 5 === 0 && (
+            <div style={{ padding: "14px 18px", borderRadius: 12, border: `1px solid ${nt.border}`, background: nt.bgCard, marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 18, opacity: 0.5 }}>◌</span>
+              <p style={{ fontSize: 13, color: nt.textMuted, margin: 0, lineHeight: 1.7, fontStyle: "italic" }}>
+                The machine is happy to wait. You don't have to be always on.
+              </p>
             </div>
           )}
 
