@@ -501,6 +501,16 @@ const STORAGE_KEY = "thinkfirst-v3";
 function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } }
 function saveState(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {} }
 
+function getOrCreateSessionId() {
+  const saved = loadState() || {};
+  if (saved.sessionId) return saved.sessionId;
+  const id = crypto.randomUUID();
+  saveState({ ...saved, sessionId: id });
+  return id;
+}
+
+const SESSION_ID = getOrCreateSessionId();
+
 // ============================================
 // API
 // ============================================
@@ -738,6 +748,7 @@ export default function ThinkFirstEngine() {
   const [emailInput, setEmailInput]   = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
   const [emailSaved, setEmailSaved]   = useState(false);
+  const [emailSkipped, setEmailSkipped] = useState(false);
   const [zeroPairIdx, setZeroPairIdx] = useState(0);
   const [zeroPhase, setZeroPhase]     = useState("question"); // question | insight | next
   const [zeroChosen, setZeroChosen]   = useState(null);
@@ -783,6 +794,7 @@ export default function ThinkFirstEngine() {
       setOutputLevels(saved.outputLevels || {});
       setOutputZeroSeen(saved.outputZeroSeen || {});
       if (saved.userEmail) { setUserEmail(saved.userEmail); setEmailSaved(true); }
+      if (saved.emailSkipped) setEmailSkipped(true);
       setScreen("hub");
     } else {
       setScreen("onboard");
@@ -794,13 +806,13 @@ export default function ThinkFirstEngine() {
     saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, userEmail, introText: saved.introText || "", ...updates });
   }
 
-  // Fire-and-forget sync to DB — only runs when we have an email
+  // Fire-and-forget sync — always sends session heartbeat, sends full record if email known
   function syncToDB(overrides = {}) {
     const saved = loadState() || {};
     const email = overrides.userEmail || userEmail || saved.userEmail || "";
-    if (!email) return;
     const payload = {
-      email,
+      sessionId:     SESSION_ID,
+      email:         email || undefined,
       name:          overrides.userName      ?? userName,
       introText:     overrides.introText     ?? saved.introText ?? introInput,
       theme:         overrides.theme         ?? theme,
@@ -953,7 +965,7 @@ export default function ThinkFirstEngine() {
     setLoading(false);
   };
 
-  const returnToHub = () => { setActiveAbility(null); setMessages([]); setIsOutputQuest(false); setScreen("hub"); };
+  const returnToHub = () => { setActiveAbility(null); setMessages([]); setIsOutputQuest(false); setScreen("hub"); syncToDB(); };
 
   const isUnlocked = (ability) => {
     const idx = ABILITIES.findIndex(a => a.id === ability.id);
@@ -1425,6 +1437,43 @@ export default function ThinkFirstEngine() {
               <div style={{ fontSize: 14, color: nt.textMuted, lineHeight: 1.7 }}>
                 {nt.hubGreeting(userName)} <span style={{ color: nt.text }}>{nt.hubSubtext}</span>
               </div>
+            </div>
+          )}
+
+          {/* Gentle email nudge — shown once after zero session, never again once saved or skipped */}
+          {!userEmail && !emailSkipped && totalSessions === 0 && (
+            <div style={{ padding: "16px 20px", borderRadius: 12, border: `1px solid ${nt.border}`, background: nt.bgCard, marginBottom: 24, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <p style={{ fontSize: 13, color: nt.textMuted, margin: 0, flex: "1 1 200px", lineHeight: 1.6 }}>
+                Drop your email and we'll save your progress — and let you know when new practices are ready.
+              </p>
+              <div style={{ display: "flex", gap: 8, flex: "1 1 240px" }}>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") document.getElementById("hub-email-btn")?.click(); }}
+                  placeholder="your@email.com"
+                  style={{ flex: 1, padding: "9px 12px", fontSize: 13, border: `1px solid ${nt.border}`, borderRadius: 8, background: nt.bgInput || "#fff", color: nt.text, fontFamily: "inherit", outline: "none", minWidth: 0 }}
+                  onFocus={e => e.target.style.borderColor = nt.accent}
+                  onBlur={e => e.target.style.borderColor = nt.border}
+                />
+                <button id="hub-email-btn" disabled={emailSaving} onClick={async () => {
+                  const val = emailInput.trim().toLowerCase();
+                  if (!val || !val.includes("@")) return;
+                  setEmailSaving(true);
+                  const saved = loadState() || {};
+                  persist({ userEmail: val, introText: saved.introText || introInput });
+                  setUserEmail(val);
+                  setEmailSaved(true);
+                  syncToDB({ userEmail: val });
+                  setEmailSaving(false);
+                }} style={{ padding: "9px 14px", borderRadius: 8, border: "none", background: nt.accent, color: "#fff", fontSize: 13, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                  {emailSaving ? "…" : "Save →"}
+                </button>
+              </div>
+              <button onClick={() => { setEmailSkipped(true); persist({ emailSkipped: true }); }} style={{ background: "none", border: "none", color: nt.textFaint, fontSize: 12, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                skip for now
+              </button>
             </div>
           )}
 
