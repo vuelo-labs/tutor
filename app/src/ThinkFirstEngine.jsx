@@ -734,6 +734,10 @@ export default function ThinkFirstEngine() {
   const [justLevelledUp, setJustLevelledUp] = useState(null);
   const [introStep, setIntroStep]     = useState(0);
   const [introInput, setIntroInput]   = useState("");
+  const [userEmail, setUserEmail]     = useState("");
+  const [emailInput, setEmailInput]   = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailSaved, setEmailSaved]   = useState(false);
   const [zeroPairIdx, setZeroPairIdx] = useState(0);
   const [zeroPhase, setZeroPhase]     = useState("question"); // question | insight | next
   const [zeroChosen, setZeroChosen]   = useState(null);
@@ -778,6 +782,7 @@ export default function ThinkFirstEngine() {
       setScaffoldDial(saved.scaffoldDial ?? 1);
       setOutputLevels(saved.outputLevels || {});
       setOutputZeroSeen(saved.outputZeroSeen || {});
+      if (saved.userEmail) { setUserEmail(saved.userEmail); setEmailSaved(true); }
       setScreen("hub");
     } else {
       setScreen("onboard");
@@ -786,7 +791,29 @@ export default function ThinkFirstEngine() {
 
   function persist(updates) {
     const saved = loadState() || {};
-    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, emailCaptured: saved.emailCaptured || false, ...updates });
+    saveState({ theme, userName, ageGroup, levels, totalSessions, scaffoldDial, outputLevels, outputZeroSeen, userEmail, introText: saved.introText || "", ...updates });
+  }
+
+  // Fire-and-forget sync to DB — only runs when we have an email
+  function syncToDB(overrides = {}) {
+    const saved = loadState() || {};
+    const email = overrides.userEmail || userEmail || saved.userEmail || "";
+    if (!email) return;
+    const payload = {
+      email,
+      name:          overrides.userName      ?? userName,
+      introText:     overrides.introText     ?? saved.introText ?? introInput,
+      theme:         overrides.theme         ?? theme,
+      levels:        overrides.levels        ?? levels,
+      outputLevels:  overrides.outputLevels  ?? outputLevels,
+      scaffoldDial:  overrides.scaffoldDial  ?? scaffoldDial,
+      totalSessions: overrides.totalSessions ?? totalSessions,
+    };
+    fetch("/api/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {}); // silent — never blocks the user
   }
 
   // Scaffolding dial adjustment
@@ -917,9 +944,11 @@ export default function ThinkFirstEngine() {
     if (isOutputQuest) {
       setOutputLevels(newLevels);
       persist({ outputLevels: newLevels, totalSessions: newSessions, scaffoldDial });
+      syncToDB({ outputLevels: newLevels, totalSessions: newSessions });
     } else {
       setLevels(newLevels);
       persist({ levels: newLevels, totalSessions: newSessions, scaffoldDial });
+      syncToDB({ levels: newLevels, totalSessions: newSessions });
     }
     setLoading(false);
   };
@@ -1305,11 +1334,52 @@ export default function ThinkFirstEngine() {
           )}
 
           {/* Reflection */}
-          <div style={{ padding: "22px 24px", borderRadius: 12, background: P.bgCard, border: `1px solid ${P.border}` }}>
+          <div style={{ padding: "22px 24px", borderRadius: 12, background: P.bgCard, border: `1px solid ${P.border}`, marginBottom: 20 }}>
             <div style={{ fontSize: 10, letterSpacing: 3, color: P.accent, textTransform: "uppercase", marginBottom: 14 }}>Reflection</div>
             <p style={{ fontFamily: P.serif, fontSize: "1rem", lineHeight: 1.9, color: P.text, margin: 0, fontStyle: "italic" }}>
               {reflection}
             </p>
+          </div>
+
+          {/* Email capture — soft, no pressure */}
+          <div style={{ padding: "20px 22px", borderRadius: 12, background: P.bgCard, border: `1px solid ${P.border}` }}>
+            <div style={{ fontSize: 10, letterSpacing: 3, color: P.faint, textTransform: "uppercase", marginBottom: 12 }}>Save progress</div>
+            {emailSaved ? (
+              <p style={{ fontSize: 13, color: P.muted, margin: 0, lineHeight: 1.7 }}>
+                Progress syncing to <span style={{ color: P.accent }}>{userEmail}</span>. We'll use this for practice reminders when that's ready.
+              </p>
+            ) : (
+              <>
+                <p style={{ fontSize: 13, color: P.muted, margin: "0 0 14px", lineHeight: 1.7 }}>
+                  Add an email to sync your progress across devices and receive practice reminders.
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="email"
+                    value={emailInput}
+                    onChange={e => setEmailInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") document.getElementById("save-email-btn")?.click(); }}
+                    placeholder="your@email.com"
+                    style={{ flex: 1, padding: "10px 14px", fontSize: 13, border: `1px solid ${P.border}`, borderRadius: 8, background: P.bgInner, color: P.text, fontFamily: P.sans, outline: "none" }}
+                    onFocus={e => e.target.style.borderColor = P.accent}
+                    onBlur={e => e.target.style.borderColor = P.border}
+                  />
+                  <button id="save-email-btn" disabled={emailSaving} onClick={async () => {
+                    const val = emailInput.trim().toLowerCase();
+                    if (!val || !val.includes("@")) return;
+                    setEmailSaving(true);
+                    const saved = loadState() || {};
+                    persist({ userEmail: val, introText: saved.introText || introInput });
+                    setUserEmail(val);
+                    syncToDB({ userEmail: val });
+                    setEmailSaved(true);
+                    setEmailSaving(false);
+                  }} style={{ padding: "10px 16px", borderRadius: 8, border: "none", background: emailSaving ? P.border : P.accent, color: "#fff", fontSize: 13, fontFamily: P.sans, cursor: emailSaving ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                    {emailSaving ? "saving…" : "Save →"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
         </div>
