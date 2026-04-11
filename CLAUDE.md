@@ -1,4 +1,4 @@
-# CLAUDE.md — Linguist Sandbox
+# CLAUDE.md — Linguist Tutor
 
 This file is not documentation. It is a set of active constraints for every session in this repo. Read it before you start, and restate any relevant section when a session drifts.
 
@@ -92,14 +92,38 @@ These are not suggestions. If you are about to do one of these things, stop and 
 
 ---
 
-## Harvest — constraints we still need to write
+## When a session goes wrong early — clear and reseed
 
-The following are placeholders for constraints that came from real session failures. Fill them in when the relevant history is documented.
+If you are two or three turns into a session and decisions are going in a direction you did not intend — the model is making choices you did not authorise, or scope is widening beyond what you specified — do not try to correct it mid-session. Stop. Clear the session with `/clear`. Identify what the opening seed got wrong or left out. Write a corrected seed that addresses the gap. Start fresh.
 
-- [HARVEST: What specific content was invented in the two sessions before it was caught? Which module and what was the false reference? That detail will sharpen the constraint above.]
+Correcting mid-session compounds the problem. A corrected seed costs one restart and produces a cleaner session than ten corrections ever would.
 
-- [HARVEST: Was there a session where a CSS class was created that duplicated an existing one under a different name? If so, what was the pattern — and should there be a "check before you create" rule for classes as well as variables?]
+> [ANNOTATION: This pattern came directly from the real build. Scope gaps in v1 prompts showed up within the first few turns — the model started making structural decisions that hadn't been authorised. The right response was a restart, not a correction loop. Maps to module A-02 and A-04.]
 
-- [HARVEST: Has a module pagination link ever been written pointing to a module number that didn't exist yet? If so, that needs its own constraint in the file and folder section.]
+---
 
-- [HARVEST: Was there a session where the wrong stage palette was applied to a module — warm variables used in an advanced-stage page or vice versa? If so, the CSS section needs a note about palette scope.]
+## Checkpoint text files
+
+The course teaches manual checkpointing via a prompt. There is a more reliable version: at the end of a session, write the current state to a plain text file yourself. Current task, active constraints, decisions made, next step. Read it back at the start of the next session before you write anything.
+
+This bypasses Claude Code's summarisation entirely. You control what gets written. It survives session boundaries in a way that context does not.
+
+Create a file called `_session.md` in the root of this repo. Update it at the end of every session. Delete it when the project is done.
+
+> [ANNOTATION: This practice was developed during the real build because the standard checkpoint prompt was not reliable enough across long sessions. The text file version is more effortful but more trustworthy. The course does not teach this — it is a deviation worth knowing. Maps to module A-05.]
+
+---
+
+## Search in the main thread is expensive
+
+If you need to find something — a class name, a string across files, a module that references a concept — do not run the search in the main session. Delegate it. A search that returns long output fills the context with content you will not use again and accelerates compaction.
+
+Name the tool explicitly in your message when you do search in the main thread: "Use Grep to find X." Bounded searches with a named tool are cheaper than open-ended ones.
+
+> [ANNOTATION: Early sessions in this build ran search operations in the main thread. The bash output accumulated, costs rose, and context degraded faster than necessary. Moving search to agent delegations or keeping main-thread searches explicitly bounded changed the cost profile significantly. Maps to module A-07 and A-08.]
+
+---
+
+## Content constraints — real example
+
+The content constraint above (do not reference modules that do not exist) was written because A-08 was drafted with a closing paragraph directing learners to "X-01: API Fundamentals." No such module exists. Two sessions passed before it was caught — it sounded plausible, navigation was not checked. The constraint exists because of that specific failure.

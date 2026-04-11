@@ -1,4 +1,4 @@
-# Linguist Sandbox
+# Linguist Tutor
 
 ## What this is
 
@@ -31,6 +31,16 @@ Improve an exercise. Exercises follow the Copy-Personalise-Use pattern. If the p
 Study the CLAUDE.md to write one for your own project. The CLAUDE.md in this repo was not written in one sitting. It grew from sessions where Claude Code did something wrong. Reading it with that history in mind — asking what failure each instruction was written to prevent — is the most direct way to learn how to write one for a different codebase.
 
 Tighten the "What good looks like" section in any module. This is the section that tells learners what a successful output looks and feels like, so they know whether the AI actually helped. These sections are easy to write vaguely. Specific is better.
+
+## Two practices developed during the real build
+
+These are not in the course. They came from the build itself.
+
+**Checkpoint text files.** At the end of a session, write the current state to `_session.md` in the root of this repo: what was completed, what constraints are active, what the next step is. Read it at the start of the next session before you do anything. This is more reliable than asking Claude Code to summarise because you control what gets written. The course teaches the checkpoint prompt — this is a better version of the same idea.
+
+**Clear and reseed.** If a session goes wrong in the first few turns — decisions being made you didn't authorise, scope drifting — stop. Use `/clear`. Identify what the opening prompt missed. Write a corrected version that addresses the gap. Restart. Mid-session corrections compound the problem. A clean restart with a better seed is almost always faster.
+
+---
 
 ## What not to do
 
